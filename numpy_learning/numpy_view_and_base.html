@@ -1,0 +1,264 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-size:13px;color:var(--color-text-primary);line-height:1.6}
+.wrap{padding:1rem 0}
+.page{display:none}.page.on{display:block}
+.q{font-size:15px;font-weight:500;margin-bottom:.4rem}
+.sub{font-size:12px;color:var(--color-text-secondary);margin-bottom:1rem;line-height:1.65}
+.note{background:var(--color-background-secondary);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--color-text-secondary);line-height:1.7;margin-bottom:.75rem}
+.warn{background:var(--color-background-danger);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--color-text-danger);line-height:1.7;margin-bottom:.75rem}
+.good{background:var(--color-background-success);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--color-text-success);line-height:1.7;margin-bottom:.75rem}
+pre{background:var(--color-background-secondary);border-radius:8px;padding:10px 12px;font-size:11.5px;font-family:var(--font-mono);line-height:1.75;margin:.5rem 0;border:0.5px solid var(--color-border-tertiary);overflow-x:auto}
+.kw{color:var(--color-text-info)}.cm{color:var(--color-text-secondary)}.num{color:var(--color-text-warning)}.st{color:var(--color-text-success)}.err{color:var(--color-text-danger)}
+.btn{border:0.5px solid var(--color-border-secondary);border-radius:8px;padding:7px 18px;font-size:13px;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-primary);font-weight:500;transition:background .15s}
+.btn:hover{background:var(--color-background-secondary)}
+.nav-btn{border:0.5px solid var(--color-border-secondary);border-radius:8px;padding:7px 18px;font-size:13px;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-primary);transition:background .15s}
+.nav-btn:disabled{opacity:.3;cursor:not-allowed}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--color-border-secondary);cursor:pointer;transition:background .2s}
+.dot.on{background:var(--color-text-primary)}
+.cell{width:46px;height:40px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;font-family:var(--font-mono);transition:all .4s;border:0.5px solid transparent}
+.row{display:flex;gap:4px;align-items:center;margin-bottom:6px}
+.lbl{font-size:11px;color:var(--color-text-secondary);font-family:var(--font-mono);min-width:80px}
+.tag{display:inline-block;font-family:var(--font-mono);font-size:11px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);border-radius:4px;padding:1px 6px}
+canvas{border-radius:8px;display:block;max-width:100%}
+</style>
+
+<div class="wrap">
+
+<!-- PAGE 0: WHAT IS A VIEW -->
+<div class="page on" id="pg0">
+  <div class="q">A view is a window into the same memory</div>
+  <div class="sub">When you slice a NumPy array, you don't get a copy of the data. You get a <strong>view</strong> — a different way of looking at the exact same numbers in memory.</div>
+
+  <div style="margin-bottom:1rem">
+    <div class="row"><span class="lbl">original:</span>
+      <div class="cell" style="background:#E6F1FB;color:#0C447C" id="o0">10</div>
+      <div class="cell" style="background:#E6F1FB;color:#0C447C" id="o1">20</div>
+      <div class="cell" style="background:#E6F1FB;color:#0C447C" id="o2">30</div>
+      <div class="cell" style="background:#E6F1FB;color:#0C447C" id="o3">40</div>
+      <div class="cell" style="background:#E6F1FB;color:#0C447C" id="o4">50</div>
+    </div>
+    <div class="row"><span class="lbl">view [1:4]:</span>
+      <div style="width:50px"></div><!-- offset -->
+      <div class="cell" style="background:#EAF3DE;color:#27500A;border:2px solid #2D8A4E" id="v0">20</div>
+      <div class="cell" style="background:#EAF3DE;color:#27500A;border:2px solid #2D8A4E" id="v1">30</div>
+      <div class="cell" style="background:#EAF3DE;color:#27500A;border:2px solid #2D8A4E" id="v2">40</div>
+    </div>
+  </div>
+
+  <div class="note">
+    The green cells <strong>do not have their own copy</strong> of 20, 30, 40. They are looking directly at the same memory slots as the blue cells. Think of it like a window — the window doesn't copy the view outside, it just frames it.
+  </div>
+
+<pre><span class="kw">import</span> numpy <span class="kw">as</span> np
+
+original = np.array([<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>, <span class="num">40</span>, <span class="num">50</span>])
+view     = original[<span class="num">1</span>:<span class="num">4</span>]          <span class="cm"># slice → creates a VIEW, not a copy</span>
+
+<span class="kw">print</span>(view)          <span class="cm"># [20 30 40]</span>
+<span class="kw">print</span>(view.base)     <span class="cm"># [10 20 30 40 50]  ← points to original</span>
+<span class="kw">print</span>(view.base <span class="kw">is</span> original)  <span class="cm"># True</span></pre>
+</div>
+
+<!-- PAGE 1: WHAT IS BASE -->
+<div class="page" id="pg1">
+  <div class="q">What is <code style="font-size:14px">.base</code>?</div>
+  <div class="sub"><span class="tag">.base</span> is NumPy's way of telling you "who owns the actual memory?" If an array is a view, <span class="tag">.base</span> points to the owner. If it owns its own memory, <span class="tag">.base</span> is <span class="tag">None</span>.</div>
+
+  <div style="display:grid;gap:8px;margin-bottom:.75rem">
+    <div style="border:0.5px solid var(--color-border-tertiary);border-radius:8px;overflow:hidden">
+      <div style="background:var(--color-background-secondary);padding:6px 12px;font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.04em">Owns its memory → .base is None</div>
+      <pre style="margin:0;border:none;border-radius:0">a = np.array([<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>])
+<span class="kw">print</span>(a.base)   <span class="cm"># None  ← a owns its own memory</span></pre>
+    </div>
+    <div style="border:0.5px solid var(--color-border-tertiary);border-radius:8px;overflow:hidden">
+      <div style="background:var(--color-background-secondary);padding:6px 12px;font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.04em">Is a view → .base points to the owner</div>
+      <pre style="margin:0;border:none;border-radius:0">b = a[<span class="num">0</span>:<span class="num">2</span>]        <span class="cm"># slice → view</span>
+<span class="kw">print</span>(b.base)   <span class="cm"># [10 20 30]  ← b is looking at a's memory</span>
+<span class="kw">print</span>(b.base <span class="kw">is</span> a)  <span class="cm"># True</span>
+
+c = a.reshape(<span class="num">3</span>, <span class="num">1</span>)  <span class="cm"># reshape → also a view</span>
+<span class="kw">print</span>(c.base <span class="kw">is</span> a)    <span class="cm"># True</span></pre>
+    </div>
+  </div>
+
+  <div class="note">
+    Simple check: <code>array.base is None</code> → it owns its memory.<br>
+    <code>array.base is not None</code> → it's a view, sharing someone else's memory.
+  </div>
+</div>
+
+<!-- PAGE 2: THE DANGEROUS PART — MUTATION -->
+<div class="page" id="pg2">
+  <div class="q">The catch — changing a view changes the original too</div>
+  <div class="sub">Because a view shares the same memory, writing to it writes to the original. Click the button to see it happen.</div>
+
+  <div style="margin-bottom:.75rem">
+    <div class="row"><span class="lbl">original:</span>
+      <div class="cell" style="background:#E6F1FB;color:#0C447C" id="m0">10</div>
+      <div class="cell" style="background:#E6F1FB;color:#0C447C" id="m1">20</div>
+      <div class="cell" style="background:#E6F1FB;color:#0C447C" id="m2">30</div>
+      <div class="cell" style="background:#E6F1FB;color:#0C447C" id="m3">40</div>
+      <div class="cell" style="background:#E6F1FB;color:#0C447C" id="m4">50</div>
+    </div>
+    <div class="row"><span class="lbl">view [1:3]:</span>
+      <div style="width:50px"></div>
+      <div class="cell" style="background:#EAF3DE;color:#27500A;border:2px solid #2D8A4E" id="mv0">20</div>
+      <div class="cell" style="background:#EAF3DE;color:#27500A;border:2px solid #2D8A4E" id="mv1">30</div>
+    </div>
+  </div>
+
+  <button class="btn" id="mutBtn" onclick="doMutate()">▶ Run: view[0] = 999</button>
+  <div id="mutResult" style="margin-top:.75rem;font-size:12px;min-height:20px;color:var(--color-text-secondary)"></div>
+
+<pre style="margin-top:.75rem"><span class="cm"># This is the surprise that catches everyone:</span>
+original = np.array([<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>, <span class="num">40</span>, <span class="num">50</span>])
+view     = original[<span class="num">1</span>:<span class="num">3</span>]
+
+view[<span class="num">0</span>] = <span class="num">999</span>           <span class="cm"># you change view...</span>
+
+<span class="kw">print</span>(original)  <span class="cm"># [10 999 30 40 50] ← original changed too!</span>
+<span class="kw">print</span>(view)      <span class="cm"># [999 30]</span></pre>
+
+  <div class="warn">⚠️ This is a very common bug in ML pipelines — you slice your training data, modify the slice for processing, and accidentally corrupt the original dataset.</div>
+</div>
+
+<!-- PAGE 3: COPY vs VIEW -->
+<div class="page" id="pg3">
+  <div class="q">The fix — use .copy() when you want independence</div>
+  <div class="sub"><span class="tag">.copy()</span> creates a brand new array with its own memory. Changing it never affects the original.</div>
+
+  <div style="margin-bottom:.75rem">
+    <div class="row"><span class="lbl">original:</span>
+      <div class="cell" style="background:#E6F1FB;color:#0C447C">10</div>
+      <div class="cell" style="background:#E6F1FB;color:#0C447C">20</div>
+      <div class="cell" style="background:#E6F1FB;color:#0C447C">30</div>
+      <div class="cell" style="background:#E6F1FB;color:#0C447C">40</div>
+      <div class="cell" style="background:#E6F1FB;color:#0C447C">50</div>
+    </div>
+    <div class="row" style="margin-top:4px"><span class="lbl" style="color:#2D8A4E">view [1:3]</span>
+      <div style="width:50px"></div>
+      <div class="cell" style="background:#EAF3DE;color:#27500A;border:2px solid #2D8A4E">20</div>
+      <div class="cell" style="background:#EAF3DE;color:#27500A;border:2px solid #2D8A4E">30</div>
+      <div style="margin-left:8px;font-size:11px;color:#27500A">← shared memory (dangerous if modified)</div>
+    </div>
+    <div class="row" style="margin-top:4px"><span class="lbl" style="color:#5B21B6">copy [1:3]</span>
+      <div style="width:50px"></div>
+      <div class="cell" style="background:#EEEDFE;color:#3C3489;border:2px solid #7C3AED">20</div>
+      <div class="cell" style="background:#EEEDFE;color:#3C3489;border:2px solid #7C3AED">30</div>
+      <div style="margin-left:8px;font-size:11px;color:#5B21B6">← own memory (safe to modify)</div>
+    </div>
+  </div>
+
+<pre>original = np.array([<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>, <span class="num">40</span>, <span class="num">50</span>])
+
+view = original[<span class="num">1</span>:<span class="num">3</span>]         <span class="cm"># view — shared memory</span>
+copy = original[<span class="num">1</span>:<span class="num">3</span>].copy()  <span class="cm"># copy — own memory</span>
+
+<span class="kw">print</span>(view.base <span class="kw">is</span> original)  <span class="cm"># True  ← view</span>
+<span class="kw">print</span>(copy.base <span class="kw">is</span> original)  <span class="cm"># False ← copy owns its data</span>
+<span class="kw">print</span>(copy.base)              <span class="cm"># None</span>
+
+copy[<span class="num">0</span>] = <span class="num">999</span>
+<span class="kw">print</span>(original)  <span class="cm"># [10 20 30 40 50] ← untouched ✓</span></pre>
+
+  <div class="good">✓ Rule of thumb: if you're going to modify a slice, always call <span class="tag">.copy()</span> on it first.</div>
+</div>
+
+<!-- PAGE 4: WHEN VIEWS ARE CREATED -->
+<div class="page" id="pg4">
+  <div class="q">What creates a view vs a copy?</div>
+  <div class="sub">Knowing which operations share memory and which don't will save you from silent bugs.</div>
+
+  <div style="display:grid;gap:8px;margin-bottom:.75rem">
+    <div style="border:0.5px solid var(--color-border-success);border-radius:8px;overflow:hidden">
+      <div style="background:var(--color-background-success);padding:6px 12px;font-size:11px;font-weight:500;color:var(--color-text-success)">✓ Creates a VIEW (shared memory, no copy)</div>
+      <pre style="margin:0;border:none;border-radius:0;border-top:0.5px solid var(--color-border-tertiary)">a[<span class="num">1</span>:<span class="num">4</span>]           <span class="cm"># basic slicing</span>
+a.reshape(<span class="num">2</span>, <span class="num">3</span>)   <span class="cm"># reshape (usually)</span>
+a.ravel()         <span class="cm"># flatten (usually)</span>
+a.T               <span class="cm"># transpose</span>
+a[:, <span class="num">0</span>]           <span class="cm"># column selection</span></pre>
+    </div>
+    <div style="border:0.5px solid var(--color-border-danger);border-radius:8px;overflow:hidden">
+      <div style="background:var(--color-background-danger);padding:6px 12px;font-size:11px;font-weight:500;color:var(--color-text-danger)">✗ Creates a COPY (new memory, safe to modify)</div>
+      <pre style="margin:0;border:none;border-radius:0;border-top:0.5px solid var(--color-border-tertiary)">a.copy()          <span class="cm"># explicit copy</span>
+a[[<span class="num">0</span>, <span class="num">2</span>, <span class="num">4</span>]]       <span class="cm"># fancy indexing (list of indices)</span>
+a[a > <span class="num">3</span>]          <span class="cm"># boolean indexing</span>
+np.concatenate([a, b])  <span class="cm"># always new array</span></pre>
+    </div>
+  </div>
+
+  <div class="note" style="margin-bottom:.75rem">
+    <strong>Quick way to always check:</strong><br>
+    <span class="tag">array.base is None</span> → owns memory (safe)<br>
+    <span class="tag">array.base is not None</span> → it's a view (careful with edits)<br>
+    <span class="tag">np.shares_memory(a, b)</span> → directly check if two arrays share memory
+  </div>
+
+<pre><span class="cm"># The ultimate check</span>
+a = np.array([<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span>])
+b = a[<span class="num">1</span>:<span class="num">3</span>]
+c = a[[<span class="num">1</span>, <span class="num">2</span>]]     <span class="cm"># fancy index → copy</span>
+
+np.shares_memory(a, b)  <span class="cm"># True  ← same memory</span>
+np.shares_memory(a, c)  <span class="cm"># False ← different memory</span></pre>
+</div>
+
+<div style="display:flex;gap:6px;margin-top:1.25rem">
+  <div class="dot on" onclick="go(0)"></div>
+  <div class="dot" onclick="go(1)"></div>
+  <div class="dot" onclick="go(2)"></div>
+  <div class="dot" onclick="go(3)"></div>
+  <div class="dot" onclick="go(4)"></div>
+</div>
+<div style="display:flex;justify-content:space-between;margin-top:.75rem">
+  <button class="nav-btn" id="pb" onclick="go(cur-1)" disabled>← Prev</button>
+  <button class="nav-btn" id="nb" onclick="go(cur+1)">Next →</button>
+</div>
+</div>
+
+<script>
+let cur=0;
+function go(n){
+  if(n<0||n>4)return;
+  document.getElementById('pg'+cur).classList.remove('on');
+  document.querySelectorAll('.dot')[cur].classList.remove('on');
+  cur=n;
+  document.getElementById('pg'+cur).classList.add('on');
+  document.querySelectorAll('.dot')[cur].classList.add('on');
+  document.getElementById('pb').disabled=cur===0;
+  document.getElementById('nb').disabled=cur===4;
+}
+
+let mutated=false;
+function doMutate(){
+  if(mutated)return;
+  mutated=true;
+  document.getElementById('mutBtn').disabled=true;
+
+  // flash view[0]
+  const mv0=document.getElementById('mv0');
+  mv0.style.background='#FEE2E2';
+  mv0.style.color='#DC2626';
+  mv0.style.border='2px solid #DC2626';
+  mv0.style.transform='scale(1.15)';
+
+  setTimeout(()=>{
+    mv0.textContent='999';
+    // original m1 also changes
+    const m1=document.getElementById('m1');
+    m1.style.background='#FEE2E2';
+    m1.style.color='#DC2626';
+    m1.style.border='2px solid #DC2626';
+    m1.style.transform='scale(1.15)';
+    m1.textContent='999';
+    setTimeout(()=>{
+      m1.style.transform='scale(1)';
+      mv0.style.transform='scale(1)';
+      document.getElementById('mutResult').innerHTML=
+        '⚠️ <strong>original[1] changed to 999</strong> — even though you only touched the view. They share the same memory cell.';
+    },300);
+  },400);
+}
+</script>

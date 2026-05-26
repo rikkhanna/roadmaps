@@ -1,0 +1,468 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-size:13px;color:var(--color-text-primary);line-height:1.6}
+.wrap{padding:1rem 0}
+.page{display:none}.page.on{display:block}
+.q{font-size:15px;font-weight:500;margin-bottom:.4rem}
+.sub{font-size:12px;color:var(--color-text-secondary);margin-bottom:1rem;line-height:1.65}
+.btn{border:0.5px solid var(--color-border-secondary);border-radius:8px;padding:7px 18px;font-size:13px;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-primary);font-weight:500;transition:background .15s}
+.btn:hover{background:var(--color-background-secondary)}
+.btn:disabled{opacity:.3;cursor:not-allowed}
+.nav-btn{border:0.5px solid var(--color-border-secondary);border-radius:8px;padding:7px 18px;font-size:13px;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-primary);transition:background .15s}
+.nav-btn:disabled{opacity:.3;cursor:not-allowed}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--color-border-secondary);cursor:pointer;transition:background .2s}
+.dot.on{background:var(--color-text-primary)}
+.note{background:var(--color-background-secondary);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--color-text-secondary);line-height:1.7}
+canvas{border-radius:8px;display:block;width:100%;max-width:560px}
+</style>
+
+<div class="wrap">
+
+<!-- PAGE 0: THE ANALOGY -->
+<div class="page on" id="pg0">
+  <div class="q">Think of it like two different post offices</div>
+  <div class="sub">Both post offices receive 10 parcels and must stamp each one. But they work very differently.</div>
+
+  <div style="display:grid;gap:10px;margin-bottom:1rem">
+
+    <div style="border:0.5px solid #E6A817;border-radius:10px;padding:12px 14px;background:#FFFBF0">
+      <div style="font-size:13px;font-weight:500;margin-bottom:6px;color:#7A4A00">🐢 Post Office A — Python list</div>
+      <div style="font-size:12px;color:#7A4A00;line-height:1.8">
+        Each parcel arrives wrapped in 5 layers of packaging.<br>
+        The worker must:<br>
+        &nbsp;&nbsp;1. Find the parcel in a big unsorted pile<br>
+        &nbsp;&nbsp;2. Read the label to figure out what's inside<br>
+        &nbsp;&nbsp;3. Unwrap all 5 layers<br>
+        &nbsp;&nbsp;4. <strong>Stamp it</strong> ← the actual job<br>
+        &nbsp;&nbsp;5. Re-wrap it in 5 new layers<br>
+        &nbsp;&nbsp;6. Find a new place to store it<br><br>
+        Repeat for every single parcel. One at a time.
+      </div>
+    </div>
+
+    <div style="border:0.5px solid #2D8A4E;border-radius:10px;padding:12px 14px;background:#F0FBF4">
+      <div style="font-size:13px;font-weight:500;margin-bottom:6px;color:#1A5C32">⚡ Post Office B — NumPy</div>
+      <div style="font-size:12px;color:#1A5C32;line-height:1.8">
+        All parcels arrive bare on a conveyor belt, no wrapping.<br>
+        A stamping machine just:<br>
+        &nbsp;&nbsp;→ <strong>Stamps each one</strong> as it passes<br><br>
+        No unwrapping. No re-wrapping. No searching.<br>
+        The machine runs at full speed the whole time.
+      </div>
+    </div>
+  </div>
+
+  <div class="note">The actual work — the stamp — takes the same time in both offices. The difference is all the <strong>extra steps</strong> Post Office A does around it. In Python, those extra steps are called <em>overhead</em>.</div>
+</div>
+
+<!-- PAGE 1: ANIMATED FACTORY -->
+<div class="page" id="pg1">
+  <div class="q">Watch it happen — same 8 numbers, two approaches</div>
+  <div class="sub">Both need to multiply 8 numbers by 2. Watch how differently they work.</div>
+
+  <canvas id="cvs" width="560" height="340"></canvas>
+  <div style="display:flex;gap:8px;margin-top:.75rem;flex-wrap:wrap">
+    <button class="btn" id="startBtn" onclick="startAnim()">▶ Start</button>
+    <button class="btn" onclick="resetAnim()">↺ Reset</button>
+  </div>
+  <div id="animNote" style="margin-top:.75rem;font-size:12px;color:var(--color-text-secondary);min-height:36px;line-height:1.6"></div>
+</div>
+
+<!-- PAGE 2: WHAT IS THE OVERHEAD -->
+<div class="page" id="pg2">
+  <div class="q">What exactly is the "wrapping" in Python?</div>
+  <div class="sub">Every number in a Python list is not just a number — it's a full Python object. Here's what that object actually contains in memory.</div>
+
+  <div style="margin-bottom:1rem">
+    <div style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">The number 42 stored in a Python list:</div>
+    <div style="border:0.5px solid #E6A817;border-radius:10px;overflow:hidden">
+      <div style="background:#FFF8E6;padding:8px 14px;display:flex;align-items:center;gap:8px;border-bottom:0.5px solid #E6A817">
+        <span style="font-size:18px">📦</span>
+        <span style="font-size:12px;font-weight:500;color:#7A4A00">PyObject — the wrapper around every Python number</span>
+      </div>
+      <div style="padding:8px 0">
+        <div style="display:flex;align-items:center;gap:0;border-bottom:0.5px solid var(--color-border-tertiary)">
+          <div style="width:140px;padding:8px 14px;font-size:11px;font-family:var(--font-mono);color:var(--color-text-secondary);flex-shrink:0">ob_refcnt</div>
+          <div style="padding:8px 14px;font-size:11px;color:var(--color-text-secondary)">Reference count — how many things point to this object (for garbage collection)</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:0;border-bottom:0.5px solid var(--color-border-tertiary)">
+          <div style="width:140px;padding:8px 14px;font-size:11px;font-family:var(--font-mono);color:var(--color-text-secondary);flex-shrink:0">ob_type</div>
+          <div style="padding:8px 14px;font-size:11px;color:var(--color-text-secondary)">Pointer to the type — e.g. "I am an int, not a float or string"</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:0">
+          <div style="width:140px;padding:8px 14px;font-size:11px;font-family:var(--font-mono);color:#0C447C;font-weight:500;flex-shrink:0">ob_digit</div>
+          <div style="padding:8px 14px;font-size:11px;color:#0C447C;font-weight:500">42 ← the actual number. Finally.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-bottom:1rem">
+    <div style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">The number 42 stored in a NumPy array:</div>
+    <div style="border:0.5px solid #2D8A4E;border-radius:10px;overflow:hidden">
+      <div style="background:#F0FBF4;padding:8px 14px;display:flex;align-items:center;gap:8px">
+        <span style="font-size:18px">⚡</span>
+        <span style="font-size:12px;font-weight:500;color:#1A5C32">8 bytes of raw memory</span>
+        <span style="font-size:12px;color:#27500A;font-weight:500;margin-left:8px">42</span>
+        <span style="font-size:11px;color:#2D8A4E">← just the number, nothing else</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">When Python does <strong>x * 2</strong>, it first has to read ob_type to check "can I multiply this?", then dig down to ob_digit to get the actual number. For 1 million elements, that's 1 million type checks Python didn't need to do — NumPy already knows every element is a float64.</div>
+</div>
+
+<!-- PAGE 3: MEMORY LAYOUT -->
+<div class="page" id="pg3">
+  <div class="q">There's another reason — where things live in memory</div>
+  <div class="sub">Your CPU has a small fast storage called <strong>cache</strong>. If the next number is right next to the current one in memory, the CPU already has it loaded. If it's far away, the CPU has to wait.</div>
+
+  <canvas id="cvs2" width="560" height="260"></canvas>
+  <div style="margin-top:.75rem" class="note">
+    A Python list stores <em>pointers</em> (addresses) that point to objects scattered all over memory. Every element access is a "go fetch" across a long distance.<br><br>
+    A NumPy array stores the actual numbers packed tightly, side by side. The CPU loads a whole chunk at once. By the time it finishes one number, the next 7 are already sitting in cache, ready. This is called <strong>cache locality</strong>.
+  </div>
+</div>
+
+<!-- PAGE 4: ONE SENTENCE SUMMARY -->
+<div class="page" id="pg4">
+  <div class="q">So why is NumPy faster? One sentence:</div>
+
+  <div style="border:0.5px solid var(--color-border-primary);border-radius:12px;padding:16px 18px;margin-bottom:1rem;font-size:14px;line-height:1.8;text-align:center">
+    Python spends most of its time on <strong>wrapping, unwrapping, and looking up</strong> each number — NumPy skips all of that and just does the math.
+  </div>
+
+  <div style="display:grid;gap:8px;font-size:12px">
+    <div style="border:0.5px solid var(--color-border-tertiary);border-radius:8px;padding:10px 14px">
+      <strong>Python list:</strong> numbers are wrapped in objects &nbsp;→&nbsp; unwrap, type-check, do math, re-wrap &nbsp;→&nbsp; × 1,000,000 times
+    </div>
+    <div style="border:0.5px solid var(--color-border-tertiary);border-radius:8px;padding:10px 14px">
+      <strong>NumPy:</strong> bare numbers in one block of memory &nbsp;→&nbsp; C loop does the math &nbsp;→&nbsp; done
+    </div>
+    <div style="border:0.5px solid var(--color-border-tertiary);border-radius:8px;padding:10px 14px">
+      <strong>The math itself</strong> (1 × 1 multiply) takes the same time in both. The difference is everything <em>around</em> the math.
+    </div>
+  </div>
+</div>
+
+<div style="display:flex;gap:6px;margin-top:1.25rem">
+  <div class="dot on" onclick="go(0)"></div>
+  <div class="dot" onclick="go(1)"></div>
+  <div class="dot" onclick="go(2)"></div>
+  <div class="dot" onclick="go(3)"></div>
+  <div class="dot" onclick="go(4)"></div>
+</div>
+<div style="display:flex;justify-content:space-between;margin-top:.75rem">
+  <button class="nav-btn" id="pb" onclick="go(cur-1)" disabled>← Prev</button>
+  <button class="nav-btn" id="nb" onclick="go(cur+1)">Next →</button>
+</div>
+</div>
+
+<script>
+let cur=0;
+function go(n){
+  if(n<0||n>4)return;
+  document.getElementById('pg'+cur).classList.remove('on');
+  document.querySelectorAll('.dot')[cur].classList.remove('on');
+  cur=n;
+  document.getElementById('pg'+cur).classList.add('on');
+  document.querySelectorAll('.dot')[cur].classList.add('on');
+  document.getElementById('pb').disabled=cur===0;
+  document.getElementById('nb').disabled=cur===4;
+  if(cur===1) initCanvas();
+  if(cur===3) drawMemory();
+}
+
+// ── PAGE 1: animation ──
+let animId=null, phase=0, step=0, tick=0;
+const nums=[3,7,1,9,4,6,2,8];
+const STEPS=['Find number in pile','Read label — what type is it?','Unwrap 5 layers of packaging','Multiply by 2 ✓','Re-wrap in new packaging','Store in new location'];
+
+function initCanvas(){
+  const c=document.getElementById('cvs');
+  if(!c) return;
+  const ctx=c.getContext('2d');
+  drawFrame(ctx,0,0,0);
+}
+
+function startAnim(){
+  document.getElementById('startBtn').disabled=true;
+  phase=0; step=0; tick=0;
+  requestAnimationFrame(animLoop);
+}
+
+function resetAnim(){
+  if(animId) cancelAnimationFrame(animId);
+  animId=null; phase=0; step=0; tick=0;
+  document.getElementById('startBtn').disabled=false;
+  document.getElementById('animNote').textContent='';
+  const c=document.getElementById('cvs');
+  if(c){ const ctx=c.getContext('2d'); drawFrame(ctx,0,0,0); }
+}
+
+function animLoop(){
+  const c=document.getElementById('cvs');
+  if(!c) return;
+  const ctx=c.getContext('2d');
+  tick++;
+
+  // Phase 0: Python list — process one by one with steps
+  if(phase===0){
+    const itemIdx=Math.floor(step/STEPS.length);
+    const substep=step%STEPS.length;
+    if(itemIdx>=nums.length){ phase=1; step=0; tick=0; }
+    else{
+      drawFrame(ctx,itemIdx,substep,0);
+      document.getElementById('animNote').textContent=`🐢 Python list — number ${itemIdx+1} of ${nums.length}: "${STEPS[substep]}"`;
+      if(tick%28===0) step++;
+    }
+  }
+  // Phase 1: NumPy — all at once
+  else if(phase===1){
+    const progress=Math.min(1,tick/60);
+    drawFrame(ctx,nums.length,0,progress);
+    document.getElementById('animNote').textContent=`⚡ NumPy — processes all ${nums.length} numbers in one sweep, no unwrapping needed`;
+    if(tick>=80){ phase=2; }
+  }
+  else{
+    document.getElementById('animNote').textContent='✅ Done! Python needed ' + (nums.length*STEPS.length) + ' steps. NumPy needed 1 sweep.';
+    document.getElementById('startBtn').disabled=false;
+    return;
+  }
+  animId=requestAnimationFrame(animLoop);
+}
+
+function drawFrame(ctx,pyIdx,pySubstep,npProgress){
+  const W=560,H=340;
+  ctx.clearRect(0,0,W,H);
+
+  // Background
+  ctx.fillStyle='var(--color-background-secondary)';
+  ctx.fillRect(0,0,W,H);
+
+  const dpr=1;
+  const cellW=46,cellH=36,gap=6;
+  const startX=20;
+
+  // ── TOP: Python section ──
+  ctx.fillStyle='var(--color-text-secondary)';
+  ctx.font='500 11px system-ui';
+  ctx.fillText('🐢  Python list (one at a time):', startX, 22);
+
+  nums.forEach((n,i)=>{
+    const x=startX+i*(cellW+gap);
+    const y=32;
+    const done=i<pyIdx || (phase>=1);
+    const active=i===pyIdx && phase===0;
+
+    // box shadow for active
+    if(active){
+      ctx.shadowColor='#E6A817';
+      ctx.shadowBlur=10;
+    }
+    // cell bg
+    ctx.fillStyle=done?'#EAF3DE':active?'#FFF3CC':'var(--color-background-primary)';
+    ctx.strokeStyle=active?'#E6A817':done?'#2D8A4E':'var(--color-border-secondary)';
+    ctx.lineWidth=active?2:0.5;
+    roundRect(ctx,x,y,cellW,cellH,6);
+    ctx.shadowBlur=0;
+
+    // number
+    ctx.fillStyle=done?'#27500A':active?'#7A4A00':'var(--color-text-secondary)';
+    ctx.font=`${active?'600':'400'} 13px var(--font-mono)`;
+    ctx.fillText(done?n*2:n, x+cellW/2-6, y+cellH/2+5);
+
+    // wrapping layers visualised as rings
+    if(!done && !active){
+      for(let l=1;l<=2;l++){
+        ctx.strokeStyle=`rgba(180,140,0,${0.3-l*0.08})`;
+        ctx.lineWidth=1;
+        ctx.strokeRect(x-l*2,y-l*2,cellW+l*4,cellH+l*4);
+      }
+    }
+  });
+
+  // Progress indicator for Python
+  if(phase===0 && pyIdx<nums.length){
+    const stepsTotal=nums.length*STEPS.length;
+    const stepsDone=pyIdx*STEPS.length+pySubstep;
+    const pct=stepsDone/stepsTotal;
+    ctx.fillStyle='var(--color-border-tertiary)';
+    roundRect2(ctx,startX,80,420,6,3);
+    ctx.fillStyle='#E6A817';
+    roundRect2(ctx,startX,80,420*pct,6,3);
+
+    // Step indicator dots
+    STEPS.forEach((s,i)=>{
+      const x2=startX+i*54;
+      ctx.beginPath();
+      ctx.arc(x2+8,100,5,0,Math.PI*2);
+      ctx.fillStyle=i<pySubstep?'#2D8A4E':i===pySubstep?'#E6A817':'var(--color-border-secondary)';
+      ctx.fill();
+      ctx.fillStyle=i===pySubstep?'#7A4A00':'var(--color-text-secondary)';
+      ctx.font='9px system-ui';
+      ctx.fillText(i+1,x2+5,104);
+    });
+    ctx.fillStyle='var(--color-text-secondary)';
+    ctx.font='10px system-ui';
+    ctx.fillText('Step: '+STEPS[pySubstep], startX, 120);
+  }
+
+  // divider
+  ctx.strokeStyle='var(--color-border-tertiary)';
+  ctx.lineWidth=0.5;
+  ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.moveTo(startX,190); ctx.lineTo(W-20,190); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // ── BOTTOM: NumPy section ──
+  ctx.fillStyle='var(--color-text-secondary)';
+  ctx.font='500 11px system-ui';
+  ctx.fillText('⚡  NumPy array (all at once):', startX, 210);
+
+  nums.forEach((n,i)=>{
+    const x=startX+i*(cellW+gap);
+    const y=218;
+    const done=npProgress>=1;
+    const active=npProgress>0 && npProgress<1;
+    const sweep=active && i<Math.floor(npProgress*nums.length+1);
+
+    ctx.fillStyle=done||sweep?'#EAF3DE':'var(--color-background-primary)';
+    ctx.strokeStyle=done||sweep?'#2D8A4E':'var(--color-border-secondary)';
+    ctx.lineWidth=0.5;
+    roundRect(ctx,x,y,cellW,cellH,6);
+
+    ctx.fillStyle=done||sweep?'#27500A':'var(--color-text-secondary)';
+    ctx.font='13px var(--font-mono)';
+    ctx.fillText(done||sweep?n*2:n, x+cellW/2-6, y+cellH/2+5);
+  });
+
+  // Sweep arrow
+  if(npProgress>0 && npProgress<1){
+    const sweepX=startX+npProgress*(nums.length*(cellW+gap));
+    ctx.fillStyle='#2D8A4E';
+    ctx.font='bold 18px system-ui';
+    ctx.fillText('→', sweepX, 245);
+  }
+
+  // Time comparison
+  if(phase>=1){
+    const pySteps=nums.length*STEPS.length;
+    ctx.fillStyle='#7A4A00';
+    ctx.font='500 11px system-ui';
+    ctx.fillText(`Python took: ${pySteps} steps`, startX, 300);
+    ctx.fillStyle='#1A5C32';
+    ctx.fillText(`NumPy took:  1 sweep`, startX, 318);
+
+    ctx.fillStyle='var(--color-text-primary)';
+    ctx.font='500 11px system-ui';
+    ctx.fillText(`→ ${pySteps}× more work for Python`, startX+230, 309);
+  }
+}
+
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);
+  ctx.lineTo(x+w,y+h-r);ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
+  ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);
+  ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);
+  ctx.closePath();ctx.fill();ctx.stroke();
+}
+function roundRect2(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);
+  ctx.lineTo(x+w,y+h-r);ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
+  ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);
+  ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);
+  ctx.closePath();ctx.fill();
+}
+
+// ── PAGE 3: memory layout ──
+function drawMemory(){
+  const c=document.getElementById('cvs2');
+  if(!c) return;
+  const ctx=c.getContext('2d');
+  const W=560,H=260;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='var(--color-background-secondary)';
+  ctx.fillRect(0,0,W,H);
+
+  const nums2=[10,20,30,40,50,60,70,80];
+
+  // --- Python list: scattered pointers ---
+  ctx.fillStyle='var(--color-text-secondary)';
+  ctx.font='500 11px system-ui';
+  ctx.fillText('🐢 Python list — pointers pointing to objects scattered in memory', 16, 22);
+
+  // List array (pointers)
+  const ptrs=['→0x1a3f','→0x9c21','→0x3f10','→0x7b44','→0x2d80','→0x8e11','→0x4c50','→0xb320'];
+  nums2.forEach((n,i)=>{
+    const x=16+i*62;
+    ctx.fillStyle='#FFF8E6';
+    ctx.strokeStyle='#E6A817';
+    ctx.lineWidth=0.5;
+    roundRect(ctx,x,30,56,28,4);
+    ctx.fillStyle='#7A4A00';
+    ctx.font='9px var(--font-mono)';
+    ctx.fillText(ptrs[i],x+2,47);
+  });
+
+  // Objects scattered
+  const objPos=[[20,90],[300,80],[130,110],[420,95],[80,105],[370,85],[230,100],[480,90]];
+  nums2.forEach((n,i)=>{
+    const [ox,oy]=objPos[i];
+    // draw line from pointer to object
+    ctx.strokeStyle='rgba(180,140,0,0.25)';
+    ctx.lineWidth=1;
+    ctx.setLineDash([3,3]);
+    ctx.beginPath();
+    ctx.moveTo(16+i*62+28, 58);
+    ctx.lineTo(ox+20, oy+10);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle='#FFF8E6';
+    ctx.strokeStyle='#E6A817';
+    ctx.lineWidth=0.5;
+    roundRect(ctx,ox,oy,40,24,4);
+    ctx.fillStyle='#7A4A00';
+    ctx.font='bold 11px var(--font-mono)';
+    ctx.fillText(n, ox+12, oy+16);
+  });
+  ctx.fillStyle='#E6A817';
+  ctx.font='10px system-ui';
+  ctx.fillText('Objects scattered → CPU has to "go fetch" each one → slow', 16, 145);
+
+  // --- NumPy: packed ---
+  ctx.fillStyle='var(--color-text-secondary)';
+  ctx.font='500 11px system-ui';
+  ctx.fillText('⚡ NumPy array — all numbers packed side by side in one block', 16, 165);
+
+  nums2.forEach((n,i)=>{
+    const x=16+i*62;
+    ctx.fillStyle='#EAF3DE';
+    ctx.strokeStyle='#2D8A4E';
+    ctx.lineWidth=0.5;
+    roundRect(ctx,x,175,56,28,4);
+    ctx.fillStyle='#27500A';
+    ctx.font='bold 13px var(--font-mono)';
+    ctx.fillText(n, x+14, 194);
+  });
+
+  // Cache line bracket
+  ctx.strokeStyle='#2D8A4E';
+  ctx.lineWidth=1.5;
+  ctx.beginPath();
+  ctx.moveTo(16,210); ctx.lineTo(16+7*62+56,210);
+  ctx.stroke();
+  // ticks
+  [16,16+7*62+56].forEach(x=>{
+    ctx.beginPath();ctx.moveTo(x,206);ctx.lineTo(x,210);ctx.stroke();
+  });
+  ctx.fillStyle='#1A5C32';
+  ctx.font='10px system-ui';
+  ctx.fillText('All in one memory block → CPU loads 8 numbers at once → fast', 16, 226);
+}
+</script>

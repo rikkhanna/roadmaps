@@ -1,0 +1,483 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-size:13px;color:var(--color-text-primary);line-height:1.6}
+.wrap{padding:1rem 0}
+.page{display:none}.page.on{display:block}
+.q{font-size:15px;font-weight:500;margin-bottom:.35rem}
+.sub{font-size:12px;color:var(--color-text-secondary);margin-bottom:1rem;line-height:1.65}
+.note{background:var(--color-background-secondary);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--color-text-secondary);line-height:1.7;margin-bottom:.75rem}
+pre{background:var(--color-background-secondary);border-radius:8px;padding:10px 12px;font-size:11.5px;font-family:var(--font-mono);line-height:1.75;margin:.5rem 0;border:0.5px solid var(--color-border-tertiary);overflow-x:auto}
+.kw{color:var(--color-text-info)}.cm{color:var(--color-text-secondary)}.num{color:var(--color-text-warning)}
+.nav-btn{border:0.5px solid var(--color-border-secondary);border-radius:8px;padding:7px 18px;font-size:13px;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-primary);transition:background .15s}
+.nav-btn:disabled{opacity:.3;cursor:not-allowed}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--color-border-secondary);cursor:pointer;transition:background .2s}
+.dot.on{background:var(--color-text-primary)}
+.tag{display:inline-block;font-family:var(--font-mono);font-size:11px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);border-radius:4px;padding:1px 6px}
+.cell{width:38px;height:34px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;font-family:var(--font-mono)}
+.row{display:flex;gap:3px;margin-bottom:3px}
+.dim-label{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-secondary);margin-bottom:4px}
+.axis-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:4px 10px;border-radius:20px;font-weight:500}
+canvas{border-radius:8px;display:block;max-width:100%}
+.slider-wrap{display:flex;align-items:center;gap:10px;margin-bottom:.75rem}
+.slider-wrap label{font-size:12px;color:var(--color-text-secondary);min-width:60px}
+input[type=range]{flex:1;accent-color:var(--color-text-primary)}
+.slice-val{font-family:var(--font-mono);font-size:12px;min-width:24px;text-align:center}
+</style>
+
+<div class="wrap">
+
+<!-- PAGE 0: BUILD UP 1D → 2D → 3D -->
+<div class="page on" id="pg0">
+  <div class="q">Start simple — build up one dimension at a time</div>
+  <div class="sub">A 3D array is just a natural extension. Let's go step by step.</div>
+
+  <!-- 1D -->
+  <div style="margin-bottom:1.1rem">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+      <span class="axis-badge" style="background:#E6F1FB;color:#0C447C">1D — shape (5,)</span>
+      <span style="font-size:11px;color:var(--color-text-secondary)">a single row of numbers</span>
+    </div>
+    <div class="row">
+      <div class="cell" style="background:#E6F1FB;color:#0C447C">1</div>
+      <div class="cell" style="background:#E6F1FB;color:#0C447C">2</div>
+      <div class="cell" style="background:#E6F1FB;color:#0C447C">3</div>
+      <div class="cell" style="background:#E6F1FB;color:#0C447C">4</div>
+      <div class="cell" style="background:#E6F1FB;color:#0C447C">5</div>
+    </div>
+    <div style="font-size:10px;color:var(--color-text-secondary);margin-top:3px">→ one axis: position along the row</div>
+  </div>
+
+  <!-- 2D -->
+  <div style="margin-bottom:1.1rem">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+      <span class="axis-badge" style="background:#EAF3DE;color:#27500A">2D — shape (3, 5)</span>
+      <span style="font-size:11px;color:var(--color-text-secondary)">stack those rows → a grid</span>
+    </div>
+    <div>
+      <div class="row"><div class="cell" style="background:#EAF3DE;color:#27500A">1</div><div class="cell" style="background:#EAF3DE;color:#27500A">2</div><div class="cell" style="background:#EAF3DE;color:#27500A">3</div><div class="cell" style="background:#EAF3DE;color:#27500A">4</div><div class="cell" style="background:#EAF3DE;color:#27500A">5</div></div>
+      <div class="row"><div class="cell" style="background:#EAF3DE;color:#27500A">6</div><div class="cell" style="background:#EAF3DE;color:#27500A">7</div><div class="cell" style="background:#EAF3DE;color:#27500A">8</div><div class="cell" style="background:#EAF3DE;color:#27500A">9</div><div class="cell" style="background:#EAF3DE;color:#27500A">10</div></div>
+      <div class="row"><div class="cell" style="background:#EAF3DE;color:#27500A">11</div><div class="cell" style="background:#EAF3DE;color:#27500A">12</div><div class="cell" style="background:#EAF3DE;color:#27500A">13</div><div class="cell" style="background:#EAF3DE;color:#27500A">14</div><div class="cell" style="background:#EAF3DE;color:#27500A">15</div></div>
+    </div>
+    <div style="font-size:10px;color:var(--color-text-secondary);margin-top:3px">→ two axes: rows (↓) and columns (→)</div>
+  </div>
+
+  <!-- 3D -->
+  <div style="margin-bottom:.75rem">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+      <span class="axis-badge" style="background:#EEEDFE;color:#3C3489">3D — shape (4, 3, 5)</span>
+      <span style="font-size:11px;color:var(--color-text-secondary)">stack those grids → a book of pages</span>
+    </div>
+    <!-- Isometric stack representation -->
+    <div style="position:relative;height:110px;width:260px">
+      <div id="pages3d"></div>
+    </div>
+    <div style="font-size:10px;color:var(--color-text-secondary);margin-top:4px">→ three axes: which page (depth), which row, which column</div>
+  </div>
+
+  <div class="note">Think of a 3D array as a <strong>book</strong>. The book has pages (axis 0), each page has rows (axis 1), each row has columns (axis 2). Shape <span class="tag">(4, 3, 5)</span> = 4 pages, 3 rows per page, 5 columns per row.</div>
+</div>
+
+<!-- PAGE 1: INTERACTIVE SLICER -->
+<div class="page" id="pg1">
+  <div class="q">Pick a page — slice along axis 0</div>
+  <div class="sub">A 3D array of shape <span class="tag">(4, 3, 5)</span>. Drag the slider to pick which page (axis 0) to look at. Each page is a 2D grid.</div>
+
+  <div class="slider-wrap">
+    <label>Page (axis 0):</label>
+    <input type="range" min="0" max="3" value="0" id="pageSlider" oninput="updateSlicer()">
+    <span class="slice-val" id="pageVal">0</span>
+    <span style="font-size:11px;color:var(--color-text-secondary)">of 3</span>
+  </div>
+
+  <canvas id="sliceCvs" width="520" height="240"></canvas>
+
+  <div id="sliceNote" style="margin-top:.75rem;font-size:12px;color:var(--color-text-secondary)"></div>
+
+<pre style="margin-top:.75rem"><span class="kw">import</span> numpy <span class="kw">as</span> np
+arr = np.arange(<span class="num">60</span>).reshape(<span class="num">4</span>, <span class="num">3</span>, <span class="num">5</span>)  <span class="cm"># shape (4, 3, 5)</span>
+
+arr[<span class="num">0</span>]    <span class="cm"># page 0 → shape (3, 5)</span>
+arr[<span class="num">1</span>]    <span class="cm"># page 1 → shape (3, 5)</span>
+arr[<span class="num">2</span>, <span class="num">1</span>] <span class="cm"># page 2, row 1 → shape (5,)  a single row</span>
+arr[<span class="num">2</span>, <span class="num">1</span>, <span class="num">3</span>] <span class="cm"># page 2, row 1, col 3 → one number</span></pre>
+</div>
+
+<!-- PAGE 2: REAL EXAMPLE — IMAGE -->
+<div class="page" id="pg2">
+  <div class="q">Real example — a colour image is a 3D array</div>
+  <div class="sub">Every image your ML model sees is stored as a 3D array: <span class="tag">(height, width, channels)</span>. The 3 channels are Red, Green, Blue.</div>
+
+  <canvas id="imgCvs" width="520" height="260"></canvas>
+
+  <div class="note" style="margin-top:.75rem">
+    A 4×4 pixel image has shape <span class="tag">(4, 4, 3)</span>.<br>
+    <strong>axis 0</strong> = row of pixels (height = 4)<br>
+    <strong>axis 1</strong> = column of pixels (width = 4)<br>
+    <strong>axis 2</strong> = colour channel (3: R, G, B)<br><br>
+    <code>image[2, 1, 0]</code> = the <strong>Red</strong> value of the pixel at row 2, column 1.
+  </div>
+
+<pre>image = np.zeros((<span class="num">4</span>, <span class="num">4</span>, <span class="num">3</span>), dtype=np.uint8)   <span class="cm"># black image</span>
+image[<span class="num">0</span>, :, <span class="num">0</span>] = <span class="num">255</span>  <span class="cm"># top row → red channel → full red</span>
+image[:, :, <span class="num">2</span>] = <span class="num">128</span>  <span class="cm"># all pixels → blue channel → half blue</span>
+image[<span class="num">2</span>, <span class="num">1</span>, <span class="num">0</span>]        <span class="cm"># Red value at row 2, col 1</span></pre>
+</div>
+
+<!-- PAGE 3: BATCH OF IMAGES -->
+<div class="page" id="pg3">
+  <div class="q">Add one more dimension — a batch of images</div>
+  <div class="sub">ML models don't process one image at a time. They process a <strong>batch</strong> — many images stacked together. That makes it 4D.</div>
+
+  <canvas id="batchCvs" width="520" height="200"></canvas>
+
+  <div class="note" style="margin-top:.75rem">
+    <strong>1D</strong> <span class="tag">(5,)</span> — a list of 5 numbers<br>
+    <strong>2D</strong> <span class="tag">(3, 5)</span> — a table: 3 rows, 5 columns<br>
+    <strong>3D</strong> <span class="tag">(H, W, 3)</span> — one colour image<br>
+    <strong>4D</strong> <span class="tag">(32, H, W, 3)</span> — a batch of 32 colour images<br><br>
+    Each extra dimension is just another level of "stacking". A 3D array is a stack of 2D grids. A 4D array is a stack of 3D arrays.
+  </div>
+
+<pre><span class="cm"># What your model actually receives per training step:</span>
+batch = np.zeros((<span class="num">32</span>, <span class="num">224</span>, <span class="num">224</span>, <span class="num">3</span>))  <span class="cm"># 32 images, 224×224, RGB</span>
+
+batch.shape      <span class="cm"># (32, 224, 224, 3)</span>
+batch[<span class="num">0</span>].shape   <span class="cm"># (224, 224, 3)  ← first image</span>
+batch[<span class="num">0</span>, :, :, <span class="num">0</span>].shape  <span class="cm"># (224, 224) ← red channel of first image</span></pre>
+</div>
+
+<!-- PAGE 4: HOW TO ACCESS ELEMENTS -->
+<div class="page" id="pg4">
+  <div class="q">How to read and write values — indexing a 3D array</div>
+  <div class="sub">You provide one index per dimension, separated by commas. Think: <strong>[page, row, column]</strong>.</div>
+
+  <canvas id="idxCvs" width="520" height="200"></canvas>
+
+  <div style="display:grid;gap:6px;margin-top:.75rem;margin-bottom:.75rem">
+    <div style="border:0.5px solid var(--color-border-tertiary);border-radius:8px;padding:8px 12px;font-size:12px">
+      <code style="font-family:var(--font-mono)">arr[1]</code> → give me <strong>page 1</strong> (the whole grid) → shape <span class="tag">(3, 5)</span>
+    </div>
+    <div style="border:0.5px solid var(--color-border-tertiary);border-radius:8px;padding:8px 12px;font-size:12px">
+      <code style="font-family:var(--font-mono)">arr[1, 2]</code> → page 1, <strong>row 2</strong> (one row) → shape <span class="tag">(5,)</span>
+    </div>
+    <div style="border:0.5px solid var(--color-border-tertiary);border-radius:8px;padding:8px 12px;font-size:12px">
+      <code style="font-family:var(--font-mono)">arr[1, 2, 3]</code> → page 1, row 2, <strong>column 3</strong> → one number
+    </div>
+    <div style="border:0.5px solid var(--color-border-tertiary);border-radius:8px;padding:8px 12px;font-size:12px">
+      <code style="font-family:var(--font-mono)">arr[:, 0, :]</code> → all pages, <strong>only row 0</strong>, all columns → shape <span class="tag">(4, 5)</span>
+    </div>
+    <div style="border:0.5px solid var(--color-border-tertiary);border-radius:8px;padding:8px 12px;font-size:12px">
+      <code style="font-family:var(--font-mono)">arr[:, :, 2]</code> → all pages, all rows, <strong>only column 2</strong> → shape <span class="tag">(4, 3)</span>
+    </div>
+  </div>
+
+<pre>arr = np.arange(<span class="num">60</span>).reshape(<span class="num">4</span>, <span class="num">3</span>, <span class="num">5</span>)
+
+arr[<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>]   <span class="cm"># → 38  (one number)</span>
+arr[<span class="num">0</span>]         <span class="cm"># → 2D grid, shape (3,5)</span>
+arr[:, <span class="num">0</span>, :]   <span class="cm"># → all first rows, shape (4,5)</span>
+arr.shape      <span class="cm"># (4, 3, 5)</span>
+arr.ndim       <span class="cm"># 3</span></pre>
+</div>
+
+<div style="display:flex;gap:6px;margin-top:1.25rem">
+  <div class="dot on" onclick="go(0)"></div>
+  <div class="dot" onclick="go(1)"></div>
+  <div class="dot" onclick="go(2)"></div>
+  <div class="dot" onclick="go(3)"></div>
+  <div class="dot" onclick="go(4)"></div>
+</div>
+<div style="display:flex;justify-content:space-between;margin-top:.75rem">
+  <button class="nav-btn" id="pb" onclick="go(cur-1)" disabled>← Prev</button>
+  <button class="nav-btn" id="nb" onclick="go(cur+1)">Next →</button>
+</div>
+</div>
+
+<script>
+let cur=0;
+const PAGES=5;
+function go(n){
+  if(n<0||n>=PAGES)return;
+  document.getElementById('pg'+cur).classList.remove('on');
+  document.querySelectorAll('.dot')[cur].classList.remove('on');
+  cur=n;
+  document.getElementById('pg'+cur).classList.add('on');
+  document.querySelectorAll('.dot')[cur].classList.add('on');
+  document.getElementById('pb').disabled=cur===0;
+  document.getElementById('nb').disabled=cur===PAGES-1;
+  if(cur===0) drawStack();
+  if(cur===1){buildSliceData();updateSlicer();}
+  if(cur===2) drawImage();
+  if(cur===3) drawBatch();
+  if(cur===4) drawIdx();
+}
+
+// ── PAGE 0: isometric stack ──
+function drawStack(){
+  const wrap=document.getElementById('pages3d');
+  if(wrap.children.length) return;
+  const colors=['#EEEDFE','#DDD9FD','#CBC5FC','#B9B0FB'];
+  const borders=['#7C6FF7','#6B63E8','#5A52D5','#4940C2'];
+  const labels=['page 0','page 1','page 2','page 3'];
+  for(let i=3;i>=0;i--){
+    const div=document.createElement('div');
+    div.style.cssText=`position:absolute;left:${i*14}px;top:${(3-i)*16}px;width:160px;height:52px;background:${colors[i]};border:1.5px solid ${borders[i]};border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;color:${borders[i]};font-family:var(--font-mono)`;
+    div.textContent=labels[i]+' (3×5 grid)';
+    wrap.appendChild(div);
+  }
+}
+
+// ── PAGE 1: slicer ──
+const data3d=[];
+for(let p=0;p<4;p++){const pg=[];for(let r=0;r<3;r++){const row=[];for(let c=0;c<5;c++) row.push(p*15+r*5+c);pg.push(row);}data3d.push(pg);}
+
+const pageColors=[
+  {bg:'#EEEDFE',border:'#7C6FF7',text:'#3C3489'},
+  {bg:'#E6F1FB',border:'#3B82F6',text:'#0C447C'},
+  {bg:'#EAF3DE',border:'#22C55E',text:'#27500A'},
+  {bg:'#FEF9EE',border:'#F59E0B',text:'#7A4A00'},
+];
+
+function buildSliceData(){}
+
+function updateSlicer(){
+  const p=parseInt(document.getElementById('pageSlider').value);
+  document.getElementById('pageVal').textContent=p;
+  const c=document.getElementById('sliceCvs');
+  if(!c)return;
+  const ctx=c.getContext('2d');
+  const W=520,H=240;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='var(--color-background-secondary)';
+  ctx.fillRect(0,0,W,H);
+
+  const col=pageColors[p];
+  const cw=52,ch=38,gap=5,sx=16,sy=50;
+
+  // Draw all pages faintly behind
+  for(let pi=3;pi>=0;pi--){
+    const ox=pi*10+180, oy=(3-pi)*12+20;
+    const pc=pageColors[pi];
+    ctx.globalAlpha=pi===p?1:0.25;
+    for(let r=0;r<3;r++) for(let c2=0;c2<5;c2++){
+      const x=ox+c2*(34+3), y=oy+r*(26+3);
+      ctx.fillStyle=pc.bg; ctx.strokeStyle=pc.border; ctx.lineWidth=0.5;
+      rrect(ctx,x,y,34,26,3);
+    }
+    ctx.fillStyle=pc.text; ctx.font='9px var(--font-mono)';
+    ctx.fillText('p'+pi, ox+72, oy+40);
+  }
+  ctx.globalAlpha=1;
+
+  // Active page label
+  ctx.fillStyle=col.text; ctx.font='500 11px system-ui';
+  ctx.fillText(`arr[${p}]  →  shape (3, 5)`, sx, 30);
+
+  // Draw selected page grid large
+  for(let r=0;r<3;r++) for(let c2=0;c2<5;c2++){
+    const x=sx+c2*(cw+gap), y=sy+r*(ch+gap);
+    ctx.fillStyle=col.bg; ctx.strokeStyle=col.border; ctx.lineWidth=1.5;
+    rrect(ctx,x,y,cw,ch,5);
+    ctx.fillStyle=col.text; ctx.font='bold 12px var(--font-mono)';
+    const val=data3d[p][r][c2];
+    ctx.fillText(val, x+cw/2-(val>9?7:4), y+ch/2+5);
+  }
+
+  // axis arrows
+  ctx.strokeStyle='var(--color-text-secondary)'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(sx,sy+3*(ch+gap)+6); ctx.lineTo(sx+5*(cw+gap)-gap,sy+3*(ch+gap)+6); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(sx-8,sy); ctx.lineTo(sx-8,sy+3*(ch+gap)-gap); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='var(--color-text-secondary)'; ctx.font='9px system-ui';
+  ctx.fillText('axis 1 (rows)',sx-8,sy+3*(ch+gap)+20);
+  ctx.save(); ctx.translate(sx-22,sy+50); ctx.rotate(-Math.PI/2);
+  ctx.fillText('axis 2 (cols)',0,0); ctx.restore();
+
+  document.getElementById('sliceNote').textContent=
+    `arr[${p}] gives you page ${p} — a 2D grid of shape (3, 5) with values ${data3d[p][0][0]}..${data3d[p][2][4]}.`;
+}
+
+function rrect(ctx,x,y,w,h,r){
+  ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);ctx.lineTo(x+w,y+h-r);ctx.arcTo(x+w,y+h,x+w-r,y+h,r);ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();ctx.fill();ctx.stroke();
+}
+
+// ── PAGE 2: image ──
+function drawImage(){
+  const c=document.getElementById('imgCvs');
+  if(!c)return;
+  const ctx=c.getContext('2d');
+  const W=520,H=260;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='var(--color-background-secondary)';
+  ctx.fillRect(0,0,W,H);
+
+  const pixels=[
+    [[220,50,50],[180,60,60],[200,70,80],[210,55,65]],
+    [[60,180,60],[70,200,80],[50,190,70],[65,185,75]],
+    [[60,60,220],[70,70,200],[55,65,210],[80,75,195]],
+    [[200,200,60],[190,195,55],[210,200,65],[195,190,70]],
+  ];
+
+  const ps=44,gap=4,sx=16,sy=24;
+  ctx.font='500 11px system-ui'; ctx.fillStyle='var(--color-text-secondary)';
+  ctx.fillText('image — shape (4, 4, 3)  →  4 rows, 4 cols, 3 channels (R, G, B)',sx,16);
+
+  // draw pixels
+  for(let r=0;r<4;r++) for(let c2=0;c2<4;c2++){
+    const [R,G,B]=pixels[r][c2];
+    const x=sx+c2*(ps+gap), y=sy+r*(ps+gap);
+    ctx.fillStyle=`rgb(${R},${G},${B})`;
+    ctx.strokeStyle='rgba(255,255,255,0.3)'; ctx.lineWidth=1;
+    ctx.beginPath();ctx.roundRect(x,y,ps,ps,4);ctx.fill();ctx.stroke();
+    if(r===1&&c2===1){
+      ctx.strokeStyle='#fff'; ctx.lineWidth=2.5;
+      ctx.beginPath();ctx.roundRect(x,y,ps,ps,4);ctx.stroke();
+    }
+  }
+
+  // highlight pixel [1,1]
+  ctx.fillStyle='var(--color-text-secondary)'; ctx.font='10px system-ui';
+  ctx.fillText('pixel [1,1]', sx+1*(ps+gap)+2, sy+1*(ps+gap)+ps+14);
+
+  // Show RGB breakdown
+  const bx=220,by=sy+8;
+  ctx.fillStyle='var(--color-text-secondary)'; ctx.font='500 11px system-ui';
+  ctx.fillText('pixel at arr[1, 1]  →  shape (3,)', bx, by);
+
+  const chData=[
+    {label:'R = arr[1,1,0]',val:70,col:'#EF4444'},
+    {label:'G = arr[1,1,1]',val:200,col:'#22C55E'},
+    {label:'B = arr[1,1,2]',val:80,col:'#3B82F6'},
+  ];
+  chData.forEach((ch,i)=>{
+    const y2=by+20+i*46;
+    ctx.fillStyle=ch.col; ctx.font='500 11px var(--font-mono)';
+    ctx.fillText(ch.label, bx, y2);
+    ctx.fillStyle='var(--color-border-tertiary)';
+    ctx.beginPath();ctx.roundRect(bx,y2+5,260,18,4);ctx.fill();
+    ctx.fillStyle=ch.col;
+    ctx.beginPath();ctx.roundRect(bx,y2+5,Math.round(260*ch.val/255),18,4);ctx.fill();
+    ctx.fillStyle='var(--color-background-primary)'; ctx.font='10px var(--font-mono)';
+    ctx.fillText(ch.val, bx+Math.round(260*ch.val/255)+4, y2+17);
+  });
+}
+
+// ── PAGE 3: batch ──
+function drawBatch(){
+  const c=document.getElementById('batchCvs');
+  if(!c)return;
+  const ctx=c.getContext('2d');
+  const W=520,H=200;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='var(--color-background-secondary)';
+  ctx.fillRect(0,0,W,H);
+
+  ctx.fillStyle='var(--color-text-secondary)'; ctx.font='500 11px system-ui';
+  ctx.fillText('batch of 5 images — shape (5, H, W, 3)', 16, 20);
+
+  const imgs=[
+    [[220,60,60],[60,180,60],[60,60,220],[200,180,60],[160,60,200]],
+  ];
+  const cols=['#EF4444','#22C55E','#3B82F6','#F59E0B','#8B5CF6'];
+  const names=['img 0','img 1','img 2','img 3','img 4'];
+
+  for(let i=4;i>=0;i--){
+    const ox=16+i*22, oy=36+(4-i)*14;
+    ctx.fillStyle=cols[i]+'33'; ctx.strokeStyle=cols[i]; ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.roundRect(ox,oy,90,70,4);ctx.fill();ctx.stroke();
+
+    // mini grid 3x3
+    for(let r=0;r<3;r++) for(let c2=0;c2<3;c2++){
+      ctx.fillStyle=cols[i]+(i%2===0?'99':'66');
+      ctx.beginPath();ctx.roundRect(ox+4+c2*28,oy+4+r*20,24,16,2);ctx.fill();
+    }
+
+    ctx.fillStyle=cols[i]; ctx.font='bold 9px system-ui';
+    ctx.fillText(names[i], ox+18, oy+86);
+  }
+
+  ctx.fillStyle='var(--color-text-secondary)'; ctx.font='10px system-ui';
+  ctx.fillText('← axis 0: which image (5)', 16+5*22+100, 70);
+
+  // shape breakdown
+  const labels=[
+    {txt:'5',desc:'images in the batch',col:'#8B5CF6'},
+    {txt:'H',desc:'height (rows of pixels)',col:'#3B82F6'},
+    {txt:'W',desc:'width (cols of pixels)',col:'#22C55E'},
+    {txt:'3',desc:'colour channels (R,G,B)',col:'#EF4444'},
+  ];
+  const sx=16,sy=128;
+  ctx.font='500 11px system-ui'; ctx.fillStyle='var(--color-text-secondary)';
+  ctx.fillText('shape ( ', sx, sy);
+  let x2=sx+58;
+  labels.forEach((l,i)=>{
+    ctx.fillStyle=l.col; ctx.font='bold 13px var(--font-mono)';
+    ctx.fillText(l.txt, x2, sy);
+    x2+=i<3?28:10;
+    if(i<3){ctx.fillStyle='var(--color-text-secondary)';ctx.font='13px system-ui';ctx.fillText(',',x2-8,sy);}
+  });
+  ctx.fillStyle='var(--color-text-secondary)'; ctx.font='500 11px system-ui';
+  ctx.fillText(' )', x2, sy);
+
+  labels.forEach((l,i)=>{
+    const lx=sx+58+i*28;
+    ctx.strokeStyle=l.col; ctx.lineWidth=1; ctx.setLineDash([2,2]);
+    ctx.beginPath();ctx.moveTo(lx,sy+4);ctx.lineTo(lx,sy+20);ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle=l.col; ctx.font='10px system-ui';
+    ctx.fillText(l.desc, sx+i*115, sy+34);
+  });
+}
+
+// ── PAGE 4: indexing diagram ──
+function drawIdx(){
+  const c=document.getElementById('idxCvs');
+  if(!c)return;
+  const ctx=c.getContext('2d');
+  const W=520,H=200;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='var(--color-background-secondary)';
+  ctx.fillRect(0,0,W,H);
+
+  const cw=40,ch=32,gap=3;
+  const pages=3,rows=3,cols=5;
+  const targetPage=1,targetRow=2,targetCol=3;
+
+  // Draw isometric-ish pages
+  for(let p=pages-1;p>=0;p--){
+    const ox=16+p*50,oy=20+p*(-12);
+    for(let r=0;r<rows;r++) for(let c2=0;c2<cols;c2++){
+      const x=ox+c2*(cw+gap), y=oy+r*(ch+gap);
+      const isTarget=p===targetPage&&r===targetRow&&c2===targetCol;
+      const isPageHl=p===targetPage;
+      const isRowHl=p===targetPage&&r===targetRow;
+      ctx.fillStyle=isTarget?'#FEF3C7':isRowHl?'#EAF3DE':isPageHl?'#EEEDFE':'var(--color-background-primary)';
+      ctx.strokeStyle=isTarget?'#F59E0B':isRowHl?'#22C55E':isPageHl?'#7C6FF7':'var(--color-border-tertiary)';
+      ctx.lineWidth=isTarget?2:0.5;
+      rrect(ctx,x,y,cw,ch,4);
+      if(isTarget){
+        ctx.fillStyle='#92400E'; ctx.font='bold 11px var(--font-mono)';
+        ctx.fillText('38',x+12,y+21);
+      }
+    }
+    ctx.font='9px system-ui'; ctx.fillStyle='var(--color-text-secondary)';
+    ctx.fillText('p'+p,ox+cols*(cw+gap)-gap,oy+rows*(ch+gap));
+  }
+
+  // Legend
+  const lx=16,ly=158;
+  [{bg:'#EEEDFE',border:'#7C6FF7',txt:'arr[1]  → page 1 selected'},
+   {bg:'#EAF3DE',border:'#22C55E',txt:'arr[1,2]  → row 2 of page 1'},
+   {bg:'#FEF3C7',border:'#F59E0B',txt:'arr[1,2,3]  → the number 38'},
+  ].forEach((l,i)=>{
+    ctx.fillStyle=l.bg; ctx.strokeStyle=l.border; ctx.lineWidth=1;
+    ctx.beginPath();ctx.roundRect(lx+i*165,ly,12,12,2);ctx.fill();ctx.stroke();
+    ctx.fillStyle='var(--color-text-secondary)'; ctx.font='10px system-ui';
+    ctx.fillText(l.txt,lx+i*165+16,ly+10);
+  });
+}
+
+// init first page
+setTimeout(drawStack, 50);
+</script>

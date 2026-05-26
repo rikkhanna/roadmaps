@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NumPy Learning Notes</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Fira+Code:wght@400;500&display=swap');
+
+        :root {
+            --bg-color: #0f172a; /* Tailwind slate-900 */
+            --card-bg: rgba(30, 41, 59, 0.7); /* Tailwind slate-800 */
+            --text-main: #f8fafc; /* Tailwind slate-50 */
+            --text-muted: #cbd5e1; /* Tailwind slate-300 */
+            --accent-primary: #3b82f6; /* Tailwind blue-500 */
+            --accent-secondary: #8b5cf6; /* Tailwind violet-500 */
+            --code-bg: #1e293b; /* Tailwind slate-800 */
+            --code-text: #38bdf8; /* Tailwind sky-400 */
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 40px 20px;
+            line-height: 1.6;
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                radial-gradient(at 50% 0%, hsla(225,39%,30%,0.3) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(339,49%,30%,0.3) 0, transparent 50%);
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #60a5fa, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.2rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: fadeInUp 0.8s ease-out backwards;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .card h2 {
+            font-size: 1.8rem;
+            margin-top: 0;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--accent-primary);
+        }
+
+        .card h2::before {
+            content: 'ƒ';
+            font-family: 'Fira Code', monospace;
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 1.2rem;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-top: 20px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 5px;
+        }
+
+        p {
+            color: var(--text-muted);
+            margin-bottom: 15px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0 0 15px 0;
+        }
+
+        li {
+            margin-bottom: 10px;
+            padding-left: 20px;
+            position: relative;
+            color: var(--text-muted);
+        }
+
+        li::before {
+            content: '▹';
+            position: absolute;
+            left: 0;
+            color: var(--accent-secondary);
+        }
+
+        code, pre {
+            font-family: 'Fira Code', monospace;
+        }
+
+        code {
+            background: var(--code-bg);
+            color: var(--code-text);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        pre {
+            background: var(--code-bg);
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            color: #e2e8f0;
+            font-size: 0.95em;
+        }
+
+        pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(139, 92, 246, 0.2);
+            color: #c084fc;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Staggered animation delays for cards */
+        .card:nth-child(1) { animation-delay: 0.1s; }
+        .card:nth-child(2) { animation-delay: 0.2s; }
+        .card:nth-child(3) { animation-delay: 0.3s; }
+        .card:nth-child(4) { animation-delay: 0.4s; }
+        .card:nth-child(5) { animation-delay: 0.5s; }
+        .card:nth-child(6) { animation-delay: 0.6s; }
+        .card:nth-child(7) { animation-delay: 0.7s; }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>NumPy Cheat Sheet</h1>
+            <div class="subtitle">Essential Array Operations & Manipulations</div>
+        </header>
+
+        <div class="card">
+            <h2>np.insert</h2>
+            <p>Inserts values along a given axis before the specified indices.</p>
+            
+            <div class="section-title">Parameters</div>
+            <ul>
+                <li><code>arr</code> <span class="badge">array_like</span>: The input array where you want to insert the values.</li>
+                <li><code>obj</code> <span class="badge">int, slice or sequence of ints</span>: The index (or indices) before which the values will be inserted.
+                    <ul>
+                        <li>Single int: Inserts before this specific index.</li>
+                        <li>Sequence/list of ints: Inserts before multiple indices.</li>
+                        <li>Slice: Inserts before the indices defined by a slice object.</li>
+                    </ul>
+                </li>
+                <li><code>values</code> <span class="badge">array_like</span>: The values to insert. If it's an array, it must be broadcastable to the shape of the insertion. Will be cast to the type of <code>arr</code> if different.</li>
+                <li><code>axis</code> <span class="badge">int, optional</span>: The axis along which to insert the values.
+                    <ul>
+                        <li><code>None</code> (default): The input array is flattened first, and a 1D array is returned.</li>
+                        <li><code>0</code>: Inserts rows (for 2D arrays).</li>
+                        <li><code>1</code>: Inserts columns (for 2D arrays).</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <div class="section-title">Return Value</div>
+            <ul>
+                <li><code>out</code> <span class="badge">ndarray</span>: A copy of <code>arr</code> with values inserted.</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>np.append & np.delete</h2>
+            <p>Basic array element removal and addition operations.</p>
+            <ul>
+                <li><code>np.append(arr, values)</code>: Appends value at the end of the array.</li>
+                <li><code>np.delete(arr, index)</code>: Deletes the element at a specified index.</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>Understanding Axis & Sorting</h2>
+            <p>How dimensions are handled in 2D arrays.</p>
+            <ul>
+                <li><code>axis=0</code>: Means columns (vertically).</li>
+                <li><code>axis=1</code>: Means rows (horizontally).</li>
+            </ul>
+            <pre><code># 2D array sorting example
+ints_2dim = np.array([[3, 2, 5, 7], 
+                      [5, 0, 8, 3]])
+
+# Sorts elements of each row (default axis=-1)
+print(np.sort(ints_2dim))</code></pre>
+        </div>
+
+        <div class="card">
+            <h2>np.arange</h2>
+            <p>Creates an array with evenly spaced values within a given interval. Similar to Python's built-in <code>range()</code> function, but returns an <code>ndarray</code>.</p>
+            
+            <pre><code>numpy.arange([start, ]stop, [step, ]dtype=None)</code></pre>
+
+            <div class="section-title">Parameters</div>
+            <ul>
+                <li><code>start</code> <span class="badge">number, optional</span>: The starting value of the interval. Includes this value. Default: <code>0</code></li>
+                <li><code>stop</code> <span class="badge">number</span>: The end of the interval. Half-open <code>[start, stop)</code>, does not include this value.</li>
+                <li><code>step</code> <span class="badge">number, optional</span>: Spacing between values. Default: <code>1</code>. Can be negative to count backward or a float.</li>
+                <li><code>dtype</code> <span class="badge">data-type, optional</span>: Output array type. Inferred by default.</li>
+            </ul>
+
+            <div class="section-title">Return Value</div>
+            <ul>
+                <li><code>out</code> <span class="badge">ndarray</span>: A 1D array of evenly spaced values.</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>np.linspace</h2>
+            <p>Creates an array of evenly spaced numbers over a specified interval. Highly recommended over <code>np.arange</code> when working with floating-point numbers.</p>
+            
+            <pre><code>numpy.linspace(start, stop, num=50, endpoint=True, retstep=False, dtype=None)</code></pre>
+
+            <div class="section-title">Parameters</div>
+            <ul>
+                <li><code>start</code> <span class="badge">array_like</span>: The starting value of the sequence.</li>
+                <li><code>stop</code> <span class="badge">array_like</span>: The end value of the sequence. Included by default.</li>
+                <li><code>num</code> <span class="badge">int, optional</span>: The total number of elements to generate. Default: <code>50</code></li>
+                <li><code>endpoint</code> <span class="badge">bool, optional</span>: Determines if <code>stop</code> is included.
+                    <ul>
+                        <li><code>True</code> (default): <code>stop</code> is the last sample.</li>
+                        <li><code>False</code>: Interval is <code>[start, stop)</code>. <code>stop</code> is excluded.</li>
+                    </ul>
+                </li>
+                <li><code>retstep</code> <span class="badge">bool, optional</span>: If True, returns a tuple: <code>(array, step_size)</code>. Default: <code>False</code></li>
+                <li><code>dtype</code> <span class="badge">data-type, optional</span>: Output array type. Defaults to float.</li>
+            </ul>
+
+            <div class="section-title">Return Value</div>
+            <ul>
+                <li><code>out</code> <span class="badge">ndarray</span>: An array of <code>num</code> equally spaced samples.</li>
+                <li><code>step</code> <span class="badge">float, optional</span>: Size of spacing between samples (only if <code>retstep=True</code>).</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>np.full</h2>
+            <p>Returns a new array of a given shape and type, filled with a specific <code>fill_value</code>.</p>
+            
+            <pre><code>numpy.full(shape, fill_value, dtype=None, order='C')</code></pre>
+
+            <div class="section-title">Parameters</div>
+            <ul>
+                <li><code>shape</code> <span class="badge">int or sequence of ints</span>: The shape of the new array. E.g., <code>5</code> or <code>(2, 3)</code>.</li>
+                <li><code>fill_value</code> <span class="badge">scalar or array_like</span>: The value to fill the array with.</li>
+                <li><code>dtype</code> <span class="badge">data-type, optional</span>: Desired data-type. Infers from <code>fill_value</code> if None.</li>
+                <li><code>order</code> <span class="badge">{'C', 'F'}, optional</span>: Memory layout. 'C' (Row-major) is default.</li>
+            </ul>
+
+            <div class="section-title">Return Value</div>
+            <ul>
+                <li><code>out</code> <span class="badge">ndarray</span>: An array with the specified shape, filled with the <code>fill_value</code>.</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>np.reshape</h2>
+            <p>Gives a new shape to an array without changing its data. Total elements must remain constant.</p>
+            
+            <pre><code>numpy.reshape(a, newshape, order='C')
+# Or as a method: arr.reshape(newshape)</code></pre>
+
+            <div class="section-title">Parameters</div>
+            <ul>
+                <li><code>a</code> <span class="badge">array_like</span>: The array you want to reshape.</li>
+                <li><code>newshape</code> <span class="badge">int or tuple of ints</span>: The desired new shape.
+                    <ul>
+                        <li>Special value <code>-1</code>: Specify <code>-1</code> for one dimension to let NumPy automatically calculate it.</li>
+                    </ul>
+                </li>
+                <li><code>order</code> <span class="badge">{'C', 'F', 'A'}, optional</span>: Determines read/write order.
+                    <ul>
+                        <li><code>'C'</code> (default): C-like, row-major order (across rows).</li>
+                        <li><code>'F'</code>: Fortran-like, column-major order (down columns).</li>
+                        <li><code>'A'</code>: 'F' if Fortran contiguous in memory, else 'C'.</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <div class="section-title">Return Value</div>
+            <ul>
+                <li><code>reshaped_array</code> <span class="badge">ndarray</span>: The reshaped array. Usually a <strong>view</strong> of the original array rather than a copy.</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
