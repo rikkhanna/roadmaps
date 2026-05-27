@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scikit-learn API Notes · fit · predict · transform · Pipeline · ColumnTransformer</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    :root {
+      --bg:           #0d0f14;
+      --surface:      #161a23;
+      --surface2:     #1e2330;
+      --border:       #272d3d;
+      --accent:       #6c63ff;
+      --accent2:      #00d2c8;
+      --accent3:      #ff7c5c;
+      --accent4:      #ffd166;
+      --text:         #e6eaf5;
+      --text-dim:     #7d8699;
+      --green:        #5dd979;
+      --code-bg:      #11141c;
+      --pill-note:    rgba(108,99,255,0.18);
+      --pill-warn:    rgba(255,124,92,0.18);
+      --pill-tip:     rgba(0,210,200,0.18);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    /* ─── HEADER ──────────────────────────────────────────────────────── */
+    header {
+      background: linear-gradient(135deg, #1a1040 0%, #0d1d40 50%, #0a2210 100%);
+      padding: 56px 48px 48px;
+      position: relative;
+      overflow: hidden;
+      border-bottom: 1px solid var(--border);
+    }
+
+    header::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 70% 80% at 80% 50%, rgba(108,99,255,0.12), transparent),
+                  radial-gradient(ellipse 50% 60% at 20% 80%, rgba(0,210,200,0.08), transparent);
+    }
+
+    .header-inner { position: relative; max-width: 1100px; margin: 0 auto; }
+
+    header .badge {
+      display: inline-block;
+      background: rgba(108,99,255,0.25);
+      border: 1px solid rgba(108,99,255,0.5);
+      color: #a8a3ff;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    header h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 800;
+      letter-spacing: -.02em;
+      background: linear-gradient(135deg, #a8a3ff, #6c63ff 40%, #00d2c8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.1;
+      margin-bottom: 14px;
+    }
+
+    header p {
+      color: var(--text-dim);
+      font-size: 1.05rem;
+      max-width: 640px;
+    }
+
+    .pill-row {
+      display: flex; flex-wrap: wrap; gap: 10px;
+      margin-top: 28px;
+    }
+
+    .pill {
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .pill.purple { background: rgba(108,99,255,0.2); color: #a8a3ff; border: 1px solid rgba(108,99,255,0.4); }
+    .pill.teal   { background: rgba(0,210,200,0.2);  color: #6eeae6; border: 1px solid rgba(0,210,200,0.4); }
+    .pill.coral  { background: rgba(255,124,92,0.2); color: #ffb09b; border: 1px solid rgba(255,124,92,0.4); }
+    .pill.yellow { background: rgba(255,209,102,0.2);color: #ffd166; border: 1px solid rgba(255,209,102,0.4); }
+    .pill.green  { background: rgba(93,217,121,0.2); color: #5dd979; border: 1px solid rgba(93,217,121,0.4); }
+
+    /* ─── LAYOUT ──────────────────────────────────────────────────────── */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 40px;
+      align-items: start;
+    }
+
+    /* ─── SIDEBAR / TOC ───────────────────────────────────────────────── */
+    .toc {
+      position: sticky;
+      top: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+    }
+
+    .toc h2 {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--text-dim);
+      margin-bottom: 16px;
+    }
+
+    .toc a {
+      display: block;
+      padding: 6px 10px;
+      border-radius: 8px;
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all .15s;
+      margin-bottom: 2px;
+    }
+
+    .toc a:hover { background: var(--surface2); color: var(--text); }
+    .toc a.active { background: rgba(108,99,255,0.2); color: #a8a3ff; }
+
+    /* ─── CONTENT ─────────────────────────────────────────────────────── */
+    .content > section {
+      margin-bottom: 60px;
+      scroll-margin-top: 24px;
+    }
+
+    h2.section-title {
+      font-size: 1.65rem;
+      font-weight: 700;
+      letter-spacing: -.015em;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .section-num {
+      display: flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    h3 { font-size: 1.1rem; font-weight: 600; margin: 28px 0 12px; color: var(--accent2); }
+
+    p { color: #c9cfe0; margin-bottom: 14px; }
+
+    /* ─── CODE BLOCKS ─────────────────────────────────────────────────── */
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      overflow-x: auto;
+      margin: 16px 0;
+      position: relative;
+    }
+
+    pre code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      color: #c9d1e0;
+    }
+
+    /* Syntax colour tokens */
+    .kw   { color: #c792ea; }  /* keyword */
+    .fn   { color: #82aaff; }  /* function */
+    .st   { color: #c3e88d; }  /* string */
+    .cm   { color: #546e7a; font-style: italic; }  /* comment */
+    .nb   { color: #f78c6c; }  /* number */
+    .cl   { color: #ffcb6b; }  /* class */
+    .op   { color: #89ddff; }  /* operator / punctuation */
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      background: rgba(108,99,255,0.15);
+      color: #a8a3ff;
+      padding: 2px 6px;
+      border-radius: 5px;
+    }
+
+    pre code { background: none; color: inherit; padding: 0; border-radius: 0; }
+
+    /* ─── CARDS ───────────────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px 28px;
+      margin: 20px 0;
+    }
+
+    .card.note   { border-left: 3px solid var(--accent); }
+    .card.warn   { border-left: 3px solid var(--accent3); }
+    .card.tip    { border-left: 3px solid var(--accent2); }
+
+    .card-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .note .card-label  { color: var(--accent); }
+    .warn .card-label  { color: var(--accent3); }
+    .tip  .card-label  { color: var(--accent2); }
+
+    /* ─── TABLES ──────────────────────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; margin: 20px 0; border-radius: 12px; border: 1px solid var(--border); }
+
+    table { width: 100%; border-collapse: collapse; }
+
+    thead { background: var(--surface2); }
+
+    th {
+      padding: 12px 18px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    td {
+      padding: 13px 18px;
+      font-size: 13.5px;
+      border-top: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    td code { font-size: 12px; }
+
+    tbody tr:hover { background: rgba(255,255,255,0.03); }
+
+    /* ─── FLOW DIAGRAMS ───────────────────────────────────────────────── */
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      flex-wrap: wrap;
+      margin: 24px 0;
+    }
+
+    .flow-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      text-align: center;
+      min-width: 110px;
+    }
+
+    .flow-box.highlight { border-color: var(--accent); background: rgba(108,99,255,0.12); color: #a8a3ff; }
+    .flow-box.green-box { border-color: var(--green);  background: rgba(93,217,121,0.1);  color: var(--green); }
+    .flow-box.teal-box  { border-color: var(--accent2);background: rgba(0,210,200,0.1);   color: var(--accent2); }
+
+    .flow-arrow {
+      color: var(--text-dim);
+      font-size: 20px;
+      padding: 0 8px;
+    }
+
+    /* ─── GRID CARDS ──────────────────────────────────────────────────── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 20px 0; }
+
+    .mini-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+    }
+
+    .mini-card .label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 6px;
+    }
+
+    .mini-card .value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      color: var(--text);
+    }
+
+    .mini-card p { font-size: 13px; margin-top: 6px; margin-bottom: 0; color: var(--text-dim); }
+
+    /* ─── RESPONSIVE ──────────────────────────────────────────────────── */
+    @media (max-width: 860px) {
+      .container { grid-template-columns: 1fr; }
+      .toc { position: static; }
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      header { padding: 36px 24px 32px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════ HEADER -->
+<header>
+  <div class="header-inner">
+    <span class="badge">Machine Learning</span>
+    <h1>Scikit-learn API</h1>
+    <p>
+      Master the five core patterns: <strong>fit</strong>, <strong>predict</strong>,
+      <strong>transform</strong>, <strong>Pipeline</strong>, and <strong>ColumnTransformer</strong>
+      — with real examples and mental models.
+    </p>
+    <div class="pill-row">
+      <span class="pill purple">fit()</span>
+      <span class="pill teal">predict()</span>
+      <span class="pill coral">transform()</span>
+      <span class="pill yellow">Pipeline</span>
+      <span class="pill green">ColumnTransformer</span>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════════════ LAYOUT -->
+<div class="container">
+
+  <!-- ── TOC ── -->
+  <nav class="toc">
+    <h2>Contents</h2>
+    <a href="#overview">API Overview</a>
+    <a href="#fit-predict">fit + predict</a>
+    <a href="#transform">transform</a>
+    <a href="#fit-transform">fit_transform</a>
+    <a href="#data-leakage">Data Leakage</a>
+    <a href="#pipeline">Pipeline</a>
+    <a href="#column-transformer">ColumnTransformer</a>
+    <a href="#full-example">Full Example</a>
+    <a href="#cross-val">Cross-Validation</a>
+    <a href="#grid-search">GridSearchCV</a>
+    <a href="#cheatsheet">Cheatsheet</a>
+    <hr style="border-color:var(--border);margin:12px 0">
+    <a href="#concepts-imputer">Imputer</a>
+    <a href="#concepts-outliers">Outliers</a>
+    <a href="#concepts-median">Median</a>
+    <a href="#concepts-scaler">Scaler</a>
+    <a href="#concepts-encoder">Encoder</a>
+    <a href="#concepts-preprocessor">Preprocessor</a>
+    <a href="#concepts-classifier">Classifier</a>
+    <a href="#concepts-crossval">Cross-Validation ↗</a>
+    <a href="#concepts-hyperparams">Hyperparameter Tuning</a>
+  </nav>
+
+  <!-- ── CONTENT ── -->
+  <main class="content">
+
+    <!-- ──────────────────────────────────── 1. OVERVIEW -->
+    <section id="overview">
+      <h2 class="section-title"><span class="section-num">1</span> API Overview</h2>
+      <p>
+        Scikit-learn's greatest strength is a <strong>unified API</strong>.
+        Every estimator (classifier, regressor, transformer) follows the same interface.
+        Once you know it, you can swap models without rewriting your code.
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>Implemented by</th>
+              <th>Purpose</th>
+              <th>Returns</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>fit(X, y)</code></td>
+              <td>All estimators</td>
+              <td>Learn from training data</td>
+              <td><code>self</code> (fitted estimator)</td>
+            </tr>
+            <tr>
+              <td><code>predict(X)</code></td>
+              <td>Classifiers &amp; Regressors</td>
+              <td>Generate predictions</td>
+              <td>Array of labels / values</td>
+            </tr>
+            <tr>
+              <td><code>predict_proba(X)</code></td>
+              <td>Probabilistic classifiers</td>
+              <td>Class probability scores</td>
+              <td>Array shape <code>(n, n_classes)</code></td>
+            </tr>
+            <tr>
+              <td><code>transform(X)</code></td>
+              <td>Transformers</td>
+              <td>Apply learned transformation</td>
+              <td>Transformed array</td>
+            </tr>
+            <tr>
+              <td><code>fit_transform(X)</code></td>
+              <td>Transformers</td>
+              <td>fit + transform in one step</td>
+              <td>Transformed array</td>
+            </tr>
+            <tr>
+              <td><code>score(X, y)</code></td>
+              <td>All supervised estimators</td>
+              <td>Default metric (accuracy / R²)</td>
+              <td>Float score</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card note">
+        <div class="card-label">📌 Mental Model</div>
+        <p style="margin:0">
+          Think of <code>fit</code> as the <em>learning phase</em> (read the textbook)
+          and <code>predict</code> / <code>transform</code> as the <em>application phase</em>
+          (take the exam). You <strong>always call <code>fit</code> first</strong> on training data,
+          never on test data.
+        </p>
+      </div>
+    </section>
+
+    <!-- ──────────────────────────────────── 2. FIT + PREDICT -->
+    <section id="fit-predict">
+      <h2 class="section-title"><span class="section-num">2</span> fit &amp; predict</h2>
+      <p>The two-step pattern for supervised learning:</p>
+
+      <div class="flow">
+        <div class="flow-box">X_train, y_train</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box highlight">fit()</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box">Fitted Model</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box highlight">predict(X_test)</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box green-box">y_pred</div>
+      </div>
+
+      <pre><code><span class="kw">from</span> sklearn.neighbors <span class="kw">import</span> KNeighborsClassifier
+<span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> train_test_split
+
+<span class="cm"># 1. Split data</span>
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=<span class="nb">0.2</span>, random_state=<span class="nb">42</span>
+)
+
+<span class="cm"># 2. Create estimator</span>
+knn = <span class="cl">KNeighborsClassifier</span>(n_neighbors=<span class="nb">3</span>)
+
+<span class="cm"># 3. fit() — learns from training data</span>
+knn.<span class="fn">fit</span>(X_train, y_train)          <span class="cm"># returns self</span>
+
+<span class="cm"># 4. predict() — applies to new data</span>
+y_pred = knn.<span class="fn">predict</span>(X_test)       <span class="cm"># array of class labels</span>
+
+<span class="cm"># 5. Evaluate</span>
+<span class="kw">from</span> sklearn.metrics <span class="kw">import</span> accuracy_score
+<span class="fn">print</span>(accuracy_score(y_test, y_pred))</code></pre>
+
+      <h3>What does fit() actually do?</h3>
+      <p>
+        After calling <code>fit</code>, the estimator stores learned parameters as
+        <strong>attributes ending with underscore</strong> (this is a convention in scikit-learn):
+      </p>
+
+      <div class="grid-2">
+        <div class="mini-card">
+          <div class="label" style="color:var(--accent)">Classifier / Regressor</div>
+          <div class="value">model.coef_</div>
+          <p>Feature weights (LinearRegression, LogisticRegression)</p>
+        </div>
+        <div class="mini-card">
+          <div class="label" style="color:var(--accent)">Classifier</div>
+          <div class="value">model.classes_</div>
+          <p>Unique class labels seen during training</p>
+        </div>
+        <div class="mini-card">
+          <div class="label" style="color:var(--accent2)">Scaler</div>
+          <div class="value">scaler.mean_</div>
+          <p>Per-feature mean learned from training data</p>
+        </div>
+        <div class="mini-card">
+          <div class="label" style="color:var(--accent2)">Scaler</div>
+          <div class="value">scaler.scale_</div>
+          <p>Per-feature std / range learned from training data</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ──────────────────────────────────── 3. TRANSFORM -->
+    <section id="transform">
+      <h2 class="section-title"><span class="section-num">3</span> transform</h2>
+      <p>
+        <em>Transformers</em> don't make predictions — they convert features into a
+        new representation. They also implement <code>fit</code> and <code>transform</code>.
+      </p>
+
+      <div class="flow">
+        <div class="flow-box">X_train (raw)</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box highlight">fit(X_train)</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box">Fitted Transformer<br>(knows mean, std…)</div>
+      </div>
+      <div class="flow" style="margin-top: 8px">
+        <div class="flow-box">X_test (raw)</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box highlight">transform(X_test)</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box teal-box">X_test (processed)</div>
+      </div>
+
+      <pre><code><span class="kw">from</span> sklearn.preprocessing <span class="kw">import</span> StandardScaler
+
+scaler = <span class="cl">StandardScaler</span>()
+
+<span class="cm"># fit: learn mean and std from training data ONLY</span>
+scaler.<span class="fn">fit</span>(X_train)
+<span class="fn">print</span>(scaler.mean_)   <span class="cm"># learned statistics</span>
+
+<span class="cm"># transform: apply the SAME statistics to test data</span>
+X_train_sc = scaler.<span class="fn">transform</span>(X_train)
+X_test_sc  = scaler.<span class="fn">transform</span>(X_test)   <span class="cm"># uses training mean/std</span></code></pre>
+
+      <h3>Common Transformers</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Class</th><th>What it does</th><th>Use when</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>StandardScaler</code></td><td>(x − μ) / σ → mean 0, std 1</td><td>Linear models, SVM, KNN</td></tr>
+            <tr><td><code>MinMaxScaler</code></td><td>Scales to [0, 1] range</td><td>Neural nets, image data</td></tr>
+            <tr><td><code>RobustScaler</code></td><td>Uses median/IQR (outlier-robust)</td><td>Data with outliers</td></tr>
+            <tr><td><code>OneHotEncoder</code></td><td>Binary dummy columns per category</td><td>Nominal categories</td></tr>
+            <tr><td><code>OrdinalEncoder</code></td><td>Integer per category</td><td>Ordered categories, trees</td></tr>
+            <tr><td><code>SimpleImputer</code></td><td>Fill missing values</td><td>Any dataset with NaN</td></tr>
+            <tr><td><code>PolynomialFeatures</code></td><td>Adds interaction / polynomial terms</td><td>Non-linear relationships</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ──────────────────────────────────── 4. FIT_TRANSFORM -->
+    <section id="fit-transform">
+      <h2 class="section-title"><span class="section-num">4</span> fit_transform</h2>
+      <p>
+        <code>fit_transform(X)</code> is a convenience shorthand that calls
+        <code>fit(X)</code> then <code>transform(X)</code> in one step.
+        <strong>Only use it on training data.</strong>
+      </p>
+
+      <div class="grid-2">
+        <div>
+          <p style="color:var(--accent3); font-size: 13px; font-weight: 600; margin-bottom: 6px;">❌ Verbose (but equivalent)</p>
+          <pre><code>scaler.<span class="fn">fit</span>(X_train)
+X_tr = scaler.<span class="fn">transform</span>(X_train)
+X_te = scaler.<span class="fn">transform</span>(X_test)</code></pre>
+        </div>
+        <div>
+          <p style="color:var(--green); font-size: 13px; font-weight: 600; margin-bottom: 6px;">✅ Concise</p>
+          <pre><code>X_tr = scaler.<span class="fn">fit_transform</span>(X_train)
+X_te = scaler.<span class="fn">transform</span>(X_test)</code></pre>
+        </div>
+      </div>
+
+      <div class="card warn">
+        <div class="card-label">⚠ Warning</div>
+        <p style="margin:0">
+          <strong>Never call <code>fit_transform</code> on test data!</strong>
+          This would re-learn statistics from the test set, causing data leakage and
+          overly optimistic evaluation scores.
+        </p>
+      </div>
+    </section>
+
+    <!-- ──────────────────────────────────── 5. DATA LEAKAGE -->
+    <section id="data-leakage">
+      <h2 class="section-title"><span class="section-num">5</span> Data Leakage</h2>
+      <p>
+        Leakage means test-set information influences your model, making it look
+        better than it really is in production.
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th></th><th>Correct ✅</th><th>Leaky ❌</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Scaling</strong></td>
+              <td><code>fit</code> on train, <code>transform</code> train &amp; test</td>
+              <td><code>fit_transform</code> on full dataset, then split</td>
+            </tr>
+            <tr>
+              <td><strong>Imputation</strong></td>
+              <td>Learn median from train, apply to test</td>
+              <td>Compute median across train+test together</td>
+            </tr>
+            <tr>
+              <td><strong>Cross-validation</strong></td>
+              <td>Preprocess inside each fold (use Pipeline)</td>
+              <td>Preprocess outside CV loop</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card tip">
+        <div class="card-label">💡 Tip — Use Pipeline to prevent leakage automatically</div>
+        <p style="margin:0">
+          When you use <code>Pipeline</code> inside <code>cross_val_score</code> or <code>GridSearchCV</code>,
+          scikit-learn calls <code>fit_transform</code> only on each training fold and
+          <code>transform</code> only on each validation fold. Leakage is impossible.
+        </p>
+      </div>
+    </section>
+
+    <!-- ──────────────────────────────────── 6. PIPELINE -->
+    <section id="pipeline">
+      <h2 class="section-title"><span class="section-num">6</span> Pipeline</h2>
+      <p>
+        A <code>Pipeline</code> chains multiple steps into a single estimator.
+        All intermediate steps must implement <code>transform</code>;
+        the final step can be an estimator or a transformer.
+      </p>
+
+      <div class="flow">
+        <div class="flow-box">Raw X</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box highlight">Step 1<br>Imputer</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box highlight">Step 2<br>Scaler</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box highlight">Step 3<br>Model</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box green-box">y_pred</div>
+      </div>
+
+      <pre><code><span class="kw">from</span> sklearn.pipeline <span class="kw">import</span> Pipeline
+<span class="kw">from</span> sklearn.preprocessing <span class="kw">import</span> StandardScaler
+<span class="kw">from</span> sklearn.linear_model <span class="kw">import</span> LogisticRegression
+
+pipe = <span class="cl">Pipeline</span>([
+    (<span class="st">'scaler'</span>,     <span class="cl">StandardScaler</span>()),
+    (<span class="st">'classifier'</span>, <span class="cl">LogisticRegression</span>(max_iter=<span class="nb">1000</span>))
+])
+
+<span class="cm"># ONE call trains everything</span>
+pipe.<span class="fn">fit</span>(X_train, y_train)
+
+<span class="cm"># predict automatically applies transform() then predict()</span>
+y_pred = pipe.<span class="fn">predict</span>(X_test)
+
+<span class="cm"># Access a step by name</span>
+scaler = pipe[<span class="st">'scaler'</span>]             <span class="cm"># or pipe.named_steps['scaler']</span>
+<span class="fn">print</span>(scaler.mean_)
+
+<span class="cm"># Get transformed output (all steps except the last)</span>
+X_scaled = pipe[:-<span class="nb">1</span>].<span class="fn">transform</span>(X_test)</code></pre>
+
+      <h3>Pipeline rules</h3>
+      <div class="grid-3">
+        <div class="mini-card">
+          <div class="label" style="color: var(--accent)">Naming</div>
+          <p>Use descriptive snake_case names — they're used in hyperparameter tuning</p>
+        </div>
+        <div class="mini-card">
+          <div class="label" style="color: var(--accent2)">Ordering</div>
+          <p>Transformers first, estimator last. Each step's output is the next step's input</p>
+        </div>
+        <div class="mini-card">
+          <div class="label" style="color: var(--green)">CV-safe</div>
+          <p>Using Pipeline inside GridSearchCV/cross_val_score prevents all data leakage</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ──────────────────────────────────── 7. COLUMNTRANSFORMER -->
+    <section id="column-transformer">
+      <h2 class="section-title"><span class="section-num">7</span> ColumnTransformer</h2>
+      <p>
+        Real data has mixed types: some columns are numeric, others are categorical.
+        <code>ColumnTransformer</code> lets you apply <em>different transformations</em>
+        to different subsets of columns, and then concatenates the results.
+      </p>
+
+      <pre><code><span class="kw">from</span> sklearn.compose <span class="kw">import</span> ColumnTransformer
+<span class="kw">from</span> sklearn.preprocessing <span class="kw">import</span> StandardScaler, OneHotEncoder
+
+numeric_cols     = [<span class="st">'age'</span>, <span class="st">'salary'</span>]
+categorical_cols = [<span class="st">'city'</span>, <span class="st">'gender'</span>]
+
+ct = <span class="cl">ColumnTransformer</span>([
+    (<span class="st">'num'</span>, <span class="cl">StandardScaler</span>(),   numeric_cols),
+    (<span class="st">'cat'</span>, <span class="cl">OneHotEncoder</span>(),    categorical_cols)
+])
+
+X_processed = ct.<span class="fn">fit_transform</span>(df_train)  <span class="cm"># fit on train only</span>
+X_test_proc  = ct.<span class="fn">transform</span>(df_test)</code></pre>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Default</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>transformers</code></td>
+              <td>—</td>
+              <td>List of <code>(name, transformer, columns)</code> tuples</td>
+            </tr>
+            <tr>
+              <td><code>remainder</code></td>
+              <td><code>'drop'</code></td>
+              <td>What to do with unspecified columns: <code>'drop'</code>, <code>'passthrough'</code>, or a transformer</td>
+            </tr>
+            <tr>
+              <td><code>sparse_threshold</code></td>
+              <td><code>0.3</code></td>
+              <td>When to return sparse matrix vs dense array</td>
+            </tr>
+            <tr>
+              <td><code>n_jobs</code></td>
+              <td><code>None</code></td>
+              <td>Parallelize transformers (<code>-1</code> = all cores)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>ColumnTransformer inside Pipeline (best practice)</h3>
+      <pre><code>pipe = <span class="cl">Pipeline</span>([
+    (<span class="st">'preprocessor'</span>, <span class="cl">ColumnTransformer</span>([
+        (<span class="st">'num'</span>, <span class="cl">Pipeline</span>([          <span class="cm"># sub-pipeline for numerics</span>
+            (<span class="st">'imputer'</span>, <span class="cl">SimpleImputer</span>(strategy=<span class="st">'median'</span>)),
+            (<span class="st">'scaler'</span>,  <span class="cl">StandardScaler</span>())
+        ]), numeric_cols),
+        (<span class="st">'cat'</span>, <span class="cl">Pipeline</span>([          <span class="cm"># sub-pipeline for categoricals</span>
+            (<span class="st">'imputer'</span>, <span class="cl">SimpleImputer</span>(strategy=<span class="st">'most_frequent'</span>)),
+            (<span class="st">'encoder'</span>, <span class="cl">OneHotEncoder</span>(handle_unknown=<span class="st">'ignore'</span>))
+        ]), categorical_cols),
+    ])),
+    (<span class="st">'model'</span>, <span class="cl">RandomForestClassifier</span>())
+])
+
+pipe.<span class="fn">fit</span>(X_train, y_train)
+pipe.<span class="fn">predict</span>(X_test)</code></pre>
+    </section>
+
+    <!-- ──────────────────────────────────── 8. FULL EXAMPLE -->
+    <section id="full-example">
+      <h2 class="section-title"><span class="section-num">8</span> Full Example — Titanic</h2>
+      <p>
+        This pattern shows the <strong>production-ready structure</strong> for any ML project:
+      </p>
+      <div class="flow" style="flex-wrap: wrap; gap: 8px;">
+        <div class="flow-box">Raw DataFrame</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box highlight">ColumnTransformer</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box teal-box">Processed Matrix</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box highlight">Classifier</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box green-box">Predictions</div>
+      </div>
+      <pre><code><span class="cm"># Numeric sub-pipeline</span>
+num_pipe = <span class="cl">Pipeline</span>([
+    (<span class="st">'imputer'</span>, <span class="cl">SimpleImputer</span>(strategy=<span class="st">'median'</span>)),
+    (<span class="st">'scaler'</span>,  <span class="cl">StandardScaler</span>())
+])
+
+<span class="cm"># Categorical sub-pipeline</span>
+cat_pipe = <span class="cl">Pipeline</span>([
+    (<span class="st">'imputer'</span>, <span class="cl">SimpleImputer</span>(strategy=<span class="st">'most_frequent'</span>)),
+    (<span class="st">'encoder'</span>, <span class="cl">OneHotEncoder</span>(sparse_output=<span class="kw">False</span>, handle_unknown=<span class="st">'ignore'</span>))
+])
+
+<span class="cm"># Combine with ColumnTransformer</span>
+preprocessor = <span class="cl">ColumnTransformer</span>([
+    (<span class="st">'num'</span>, num_pipe, [<span class="st">'age'</span>, <span class="st">'fare'</span>, <span class="st">'sibsp'</span>, <span class="st">'parch'</span>]),
+    (<span class="st">'cat'</span>, cat_pipe, [<span class="st">'pclass'</span>, <span class="st">'sex'</span>, <span class="st">'embarked'</span>])
+])
+
+<span class="cm"># Full Pipeline</span>
+titanic_pipe = <span class="cl">Pipeline</span>([
+    (<span class="st">'preprocessor'</span>, preprocessor),
+    (<span class="st">'classifier'</span>,   <span class="cl">RandomForestClassifier</span>(n_estimators=<span class="nb">100</span>))
+])
+
+titanic_pipe.<span class="fn">fit</span>(X_tr, y_tr)
+<span class="fn">print</span>(titanic_pipe.<span class="fn">score</span>(X_te, y_te))</code></pre>
+    </section>
+
+    <!-- ──────────────────────────────────── 9. CROSS-VALIDATION -->
+    <section id="cross-val">
+      <h2 class="section-title"><span class="section-num">9</span> Cross-Validation</h2>
+      <p>
+        A single train/test split can be lucky or unlucky.
+        <strong>K-Fold cross-validation</strong> gives a reliable performance estimate
+        by training and evaluating on <em>k</em> different splits.
+      </p>
+      <pre><code><span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> cross_val_score, StratifiedKFold
+
+cv = <span class="cl">StratifiedKFold</span>(n_splits=<span class="nb">5</span>, shuffle=<span class="kw">True</span>, random_state=<span class="nb">42</span>)
+
+scores = <span class="fn">cross_val_score</span>(
+    pipe,   <span class="cm"># Pipeline — leakage is prevented inside each fold</span>
+    X, y,
+    cv=cv, scoring=<span class="st">'accuracy'</span>
+)
+
+<span class="fn">print</span>(scores)            <span class="cm"># [0.82, 0.84, 0.81, 0.83, 0.85]</span>
+<span class="fn">print</span>(scores.<span class="fn">mean</span>())    <span class="cm"># 0.83</span>
+<span class="fn">print</span>(scores.<span class="fn">std</span>())     <span class="cm"># 0.013</span></code></pre>
+
+      <div class="card note">
+        <div class="card-label">📌 Note — Why use Pipeline with CV?</div>
+        <p style="margin:0">
+          When you pass a <code>Pipeline</code> to <code>cross_val_score</code>,
+          the fitting of each transformer happens <em>inside each fold</em> on the training
+          portion only. This is the correct, leakage-free way to evaluate models.
+        </p>
+      </div>
+    </section>
+
+    <!-- ──────────────────────────────────── 10. GRIDSEARCHCV -->
+    <section id="grid-search">
+      <h2 class="section-title"><span class="section-num">10</span> GridSearchCV</h2>
+      <p>
+        Exhaustively searches a parameter grid, evaluating each combination with
+        cross-validation. Works seamlessly with Pipelines.
+      </p>
+      <pre><code><span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> GridSearchCV
+
+<span class="cm"># Use 'stepname__param' to refer to Pipeline step parameters</span>
+param_grid = {
+    <span class="st">'classifier__n_estimators'</span>: [<span class="nb">50</span>, <span class="nb">100</span>, <span class="nb">200</span>],
+    <span class="st">'classifier__max_depth'</span>:    [<span class="kw">None</span>, <span class="nb">5</span>, <span class="nb">10</span>],
+}
+
+grid = <span class="cl">GridSearchCV</span>(pipe, param_grid, cv=<span class="nb">5</span>, scoring=<span class="st">'accuracy'</span>, n_jobs=-<span class="nb">1</span>)
+grid.<span class="fn">fit</span>(X_train, y_train)
+
+<span class="fn">print</span>(grid.best_params_)    <span class="cm"># {'classifier__max_depth': 10, ...}</span>
+<span class="fn">print</span>(grid.best_score_)     <span class="cm"># best CV score</span>
+best_model = grid.best_estimator_  <span class="cm"># the full fitted Pipeline</span></code></pre>
+    </section>
+
+    <!-- ──────────────────────────────────── 11. CHEATSHEET -->
+    <section id="cheatsheet">
+      <h2 class="section-title"><span class="section-num">11</span> Cheatsheet</h2>
+
+      <pre><code><span class="cm"># ── Core API ─────────────────────────────────────────────────</span>
+estimator.<span class="fn">fit</span>(X_train, y_train)         <span class="cm"># Train</span>
+estimator.<span class="fn">predict</span>(X_test)              <span class="cm"># Predict labels</span>
+estimator.<span class="fn">predict_proba</span>(X_test)        <span class="cm"># Predict probabilities</span>
+transformer.<span class="fn">transform</span>(X_test)         <span class="cm"># Apply transformation</span>
+transformer.<span class="fn">fit_transform</span>(X_train)    <span class="cm"># fit + transform (train only)</span>
+estimator.<span class="fn">score</span>(X_test, y_test)        <span class="cm"># Default metric</span>
+
+<span class="cm"># ── Pipeline ──────────────────────────────────────────────────</span>
+pipe = <span class="cl">Pipeline</span>([(<span class="st">'s1'</span>, T1()), (<span class="st">'s2'</span>, T2()), (<span class="st">'model'</span>, M())])
+pipe.<span class="fn">fit</span>(X_train, y_train)   <span class="cm"># fits all steps</span>
+pipe.<span class="fn">predict</span>(X_test)         <span class="cm"># transforms + predicts</span>
+pipe[<span class="st">'s1'</span>]                   <span class="cm"># access step by name</span>
+pipe[:-<span class="nb">1</span>].<span class="fn">transform</span>(X)       <span class="cm"># transform only (skip last step)</span>
+
+<span class="cm"># ── ColumnTransformer ─────────────────────────────────────────</span>
+ct = <span class="cl">ColumnTransformer</span>([
+    (<span class="st">'num'</span>, <span class="cl">StandardScaler</span>(),  num_cols),
+    (<span class="st">'cat'</span>, <span class="cl">OneHotEncoder</span>(),   cat_cols),
+    <span class="cm"># remainder='passthrough' to keep other columns unchanged</span>
+])
+
+<span class="cm"># ── Evaluation ────────────────────────────────────────────────</span>
+<span class="fn">cross_val_score</span>(pipe, X, y, cv=<span class="nb">5</span>, scoring=<span class="st">'accuracy'</span>)
+<span class="cl">GridSearchCV</span>(pipe, param_grid, cv=<span class="nb">5</span>)   <span class="cm"># 'step__param' syntax</span>
+
+<span class="cm"># ── Golden Rule ───────────────────────────────────────────────</span>
+<span class="cm"># fit() ONLY on training data → no data leakage</span>
+<span class="cm"># Use Pipeline inside CV → leakage-free evaluation</span></code></pre>
+    </section>
+
+
+    <!-- ══════════════════════════════════ CONCEPTS FROM Q&A ══ -->
+    <section style="margin-top:60px">
+      <h2 class="section-title" style="color:var(--accent4)">Concepts Q&amp;A</h2>
+      <p>Core building blocks explained — from the learning session.</p>
+    </section>
+
+    <!-- ──────────────────────────────────── IMPUTER -->
+    <section id="concepts-imputer">
+      <h2 class="section-title"><span class="section-num" style="background:var(--accent2)">A</span> Imputer</h2>
+      <p>An <strong>imputer</strong> fills in missing values (<code>NaN</code>) in your dataset so your model doesn't crash or produce bad results.</p>
+
+      <div class="card note">
+        <div class="card-label">The problem</div>
+        <p style="margin:0">Real-world data almost always has gaps. Most ML models <strong>cannot handle NaN</strong> — they'll either throw an error or produce garbage predictions.</p>
+      </div>
+
+      <pre><code><span class="kw">from</span> sklearn.impute <span class="kw">import</span> SimpleImputer
+
+imputer = <span class="cl">SimpleImputer</span>(strategy=<span class="st">'mean'</span>)
+imputer.<span class="fn">fit</span>(X_train)          <span class="cm"># learns mean of each column from training data</span>
+X_filled = imputer.<span class="fn">transform</span>(X_test)  <span class="cm"># replaces NaN with those learned means</span></code></pre>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>strategy=</th><th>Fills NaN with</th><th>Use when</th></tr></thead>
+          <tbody>
+            <tr><td><code>'mean'</code></td><td>column average</td><td>numeric, no outliers</td></tr>
+            <tr><td><code>'median'</code></td><td>column middle value</td><td>numeric, <strong>with outliers</strong></td></tr>
+            <tr><td><code>'most_frequent'</code></td><td>most common value</td><td>categorical or numeric</td></tr>
+            <tr><td><code>'constant'</code></td><td>a value you specify</td><td>you know the right fill value</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card warn">
+        <div class="card-label">⚠ Key Rule</div>
+        <p style="margin:0">Always <code>fit</code> the imputer on <strong>training data only</strong>. If you fit on test data too, you leak test information — the mean would change and your evaluation becomes dishonest.</p>
+      </div>
+    </section>
+
+    <!-- ──────────────────────────────────── OUTLIERS -->
+    <section id="concepts-outliers">
+      <h2 class="section-title"><span class="section-num" style="background:var(--accent3)">B</span> Outliers</h2>
+      <p><strong>Outliers</strong> are data points that are far away from the rest of the data — unusual, extreme values.</p>
+
+      <pre><code><span class="cm"># Salaries (in $1000):</span>
+<span class="nb">42</span>  <span class="nb">45</span>  <span class="nb">47</span>  <span class="nb">50</span>  <span class="nb">48</span>  <span class="nb">44</span>  <span class="nb">46</span>  <span class="nb">43</span>  <span class="nb">49</span>  <span class="nb">950</span>  <span class="cm"># ← outlier!</span>
+<span class="cm"># |___________________________________|</span>
+<span class="cm">#          most data lives here        ^ way out here</span></code></pre>
+
+      <h3>Why they matter for imputation</h3>
+      <pre><code>Ages: 22, 25, 28, 24, 26, 23, 200   <span class="cm"># 200 is likely a data entry error</span>
+
+Mean   = <span class="nb">49.7</span>   <span class="cm"># pulled far up by 200 — unrealistic</span>
+Median = <span class="nb">25</span>     <span class="cm"># unaffected — still in the middle of real data</span></code></pre>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Cause</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td>Data entry error</td><td>Age = <code>200</code> instead of <code>20</code></td></tr>
+            <tr><td>Sensor malfunction</td><td>Temperature reading of <code>9999</code></td></tr>
+            <tr><td>Genuinely rare event</td><td>A billionaire in a salary dataset</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card tip">
+        <div class="card-label">💡 Rule of Thumb</div>
+        <p style="margin:0">A value more than <strong>1.5× IQR</strong> above Q3 or below Q1 is considered an outlier. This is exactly what a box plot visualizes.</p>
+      </div>
+    </section>
+
+    <!-- ──────────────────────────────────── MEDIAN -->
+    <section id="concepts-median">
+      <h2 class="section-title"><span class="section-num" style="background:#7c5cbf">C</span> Median</h2>
+      <p><strong>Step 1: Sort the values. Step 2: Pick the middle one.</strong></p>
+
+      <div class="grid-2">
+        <div>
+          <h3 style="margin-top:0">Odd number of values</h3>
+          <pre><code>Data: 7, 2, 5, 1, 9
+
+Sort:  1  2  [5]  7  9
+               ↑
+           median = 5</code></pre>
+        </div>
+        <div>
+          <h3 style="margin-top:0">Even number of values</h3>
+          <pre><code>Data: 7, 2, 5, 1, 9, 4
+
+Sort:  1  2  [4  5]  7  9
+               ↑  ↑
+     (4 + 5) / 2 = 4.5</code></pre>
+        </div>
+      </div>
+
+      <pre><code><span class="kw">import</span> numpy <span class="kw">as</span> np
+
+data = [<span class="nb">22</span>, <span class="nb">25</span>, <span class="nb">28</span>, <span class="nb">24</span>, <span class="nb">200</span>]
+
+<span class="fn">print</span>(np.<span class="fn">mean</span>(data))    <span class="cm"># 59.8  ← distorted by 200</span>
+<span class="fn">print</span>(np.<span class="fn">median</span>(data))  <span class="cm"># 25.0  ← stable, unaffected by outlier</span></code></pre>
+    </section>
+
+    <!-- ──────────────────────────────────── SCALER -->
+    <section id="concepts-scaler">
+      <h2 class="section-title"><span class="section-num" style="background:var(--accent)">D</span> Scaler</h2>
+      <p>A <strong>scaler</strong> rescales numeric features so they're all on a comparable range — stops features with big numbers from dominating features with small numbers.</p>
+
+      <div class="card warn">
+        <div class="card-label">The problem</div>
+        <p style="margin:0">Age (0–100) vs Salary (0–200,000). A model sees salary values <em>thousands of times larger</em> and incorrectly assumes salary is more important — just because the numbers are bigger.</p>
+      </div>
+
+      <h3>How StandardScaler works: <code>(x − mean) / std</code></h3>
+      <pre><code>Ages: 20, 30, 40, 50   →   Mean=35, Std=11.18
+
+<span class="nb">20</span> → (<span class="nb">20</span>-<span class="nb">35</span>)/<span class="nb">11.18</span> = <span class="nb">-1.34</span>
+<span class="nb">30</span> → (<span class="nb">30</span>-<span class="nb">35</span>)/<span class="nb">11.18</span> = <span class="nb">-0.45</span>
+<span class="nb">40</span> → (<span class="nb">40</span>-<span class="nb">35</span>)/<span class="nb">11.18</span> = <span class="nb">+0.45</span>
+<span class="nb">50</span> → (<span class="nb">50</span>-<span class="nb">35</span>)/<span class="nb">11.18</span> = <span class="nb">+1.34</span>
+<span class="cm"># Result: mean ≈ 0, std ≈ 1</span></code></pre>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Scaler</th><th>Formula</th><th>Output</th><th>Use when</th></tr></thead>
+          <tbody>
+            <tr><td><code>StandardScaler</code></td><td>(x−mean)/std</td><td>~−3 to +3</td><td>Linear models, SVM, KNN</td></tr>
+            <tr><td><code>MinMaxScaler</code></td><td>(x−min)/(max−min)</td><td>0 to 1</td><td>Neural networks, image data</td></tr>
+            <tr><td><code>RobustScaler</code></td><td>(x−median)/IQR</td><td>varies</td><td>Data <strong>with outliers</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="grid-2">
+        <div class="mini-card">
+          <div class="label" style="color:var(--green)">Needs scaling ✅</div>
+          <p>Linear Regression · Logistic Regression · SVM · KNN · Neural Networks</p>
+        </div>
+        <div class="mini-card">
+          <div class="label" style="color:var(--accent3)">Doesn't need it ❌</div>
+          <p>Decision Trees · Random Forest · XGBoost · Naive Bayes</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ──────────────────────────────────── ENCODER -->
+    <section id="concepts-encoder">
+      <h2 class="section-title"><span class="section-num" style="background:var(--accent2)">E</span> Encoder</h2>
+      <p>An <strong>encoder</strong> converts categorical (text) data into numbers — ML models can only do math, they can't work with strings like <code>"red"</code> or <code>"NY"</code>.</p>
+
+      <h3>OrdinalEncoder → one integer per category</h3>
+      <pre><code><span class="cm"># "NY" → 0,  "LA" → 1,  "Chicago" → 2</span>
+oe = <span class="cl">OrdinalEncoder</span>()
+oe.<span class="fn">fit_transform</span>([[<span class="st">"NY"</span>], [<span class="st">"LA"</span>], [<span class="st">"Chicago"</span>], [<span class="st">"NY"</span>]])
+<span class="cm"># → [[2.], [1.], [0.], [2.]]</span></code></pre>
+
+      <div class="card warn">
+        <div class="card-label">⚠ Problem with OrdinalEncoder on nominal data</div>
+        <p style="margin:0">The model may think Chicago (2) &gt; LA (1) &gt; NY (0), implying a false ordering that doesn't exist.</p>
+      </div>
+
+      <h3>OneHotEncoder → one binary column per category</h3>
+      <pre><code><span class="cm">#           city_NY  city_LA  city_Chicago</span>
+<span class="cm"># "NY"    →    1        0         0</span>
+<span class="cm"># "LA"    →    0        1         0</span>
+<span class="cm"># "Chicago" →  0        0         1</span>
+
+ohe = <span class="cl">OneHotEncoder</span>(sparse_output=<span class="kw">False</span>)
+ohe.<span class="fn">fit_transform</span>([[<span class="st">"NY"</span>], [<span class="st">"LA"</span>], [<span class="st">"Chicago"</span>]])</code></pre>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Encoder</th><th>Use when</th></tr></thead>
+          <tbody>
+            <tr><td><code>OrdinalEncoder</code></td><td>Categories have a <strong>real order</strong> (small/medium/large) or with tree models</td></tr>
+            <tr><td><code>OneHotEncoder</code></td><td>Categories have <strong>no order</strong> (city, color, gender) with linear/neural models</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card tip">
+        <div class="card-label">💡 One-line distinction</div>
+        <p style="margin:0"><code>Scaler</code> fixes the scale of numbers (big vs small) · <code>Encoder</code> converts text into numbers (words → digits)</p>
+      </div>
+    </section>
+
+    <!-- ──────────────────────────────────── PREPROCESSOR -->
+    <section id="concepts-preprocessor">
+      <h2 class="section-title"><span class="section-num" style="background:#c97c2a">F</span> Preprocessor</h2>
+      <p>A <strong>preprocessor</strong> is the combination of all data-cleaning steps — imputing, scaling, encoding — bundled together before feeding data into a model. It's a concept, not a single class.</p>
+
+      <div class="flow" style="flex-wrap:wrap;gap:8px">
+        <div class="flow-box">Raw Data<br>(messy)</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box highlight">Imputer<br>fills NaN</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box highlight">Scaler<br>normalize</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box highlight">Encoder<br>text→nums</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box teal-box">Clean Matrix</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box green-box">Model</div>
+      </div>
+
+      <p>In sklearn, a preprocessor is usually a <code>ColumnTransformer</code> — it applies different transformations to different column groups simultaneously:</p>
+
+      <pre><code><span class="kw">from</span> sklearn.compose <span class="kw">import</span> ColumnTransformer
+
+num_transformer = <span class="cl">Pipeline</span>([
+    (<span class="st">'imputer'</span>, <span class="cl">SimpleImputer</span>(strategy=<span class="st">'median'</span>)),
+    (<span class="st">'scaler'</span>,  <span class="cl">StandardScaler</span>())
+])
+
+cat_transformer = <span class="cl">Pipeline</span>([
+    (<span class="st">'imputer'</span>, <span class="cl">SimpleImputer</span>(strategy=<span class="st">'most_frequent'</span>)),
+    (<span class="st">'encoder'</span>, <span class="cl">OneHotEncoder</span>(sparse_output=<span class="kw">False</span>))
+])
+
+preprocessor = <span class="cl">ColumnTransformer</span>([
+    (<span class="st">'num'</span>, num_transformer, [<span class="st">'age'</span>, <span class="st">'salary'</span>]),
+    (<span class="st">'cat'</span>, cat_transformer, [<span class="st">'city'</span>, <span class="st">'gender'</span>])
+])
+
+<span class="cm"># Plug into Pipeline — cleans + trains in one shot</span>
+full_pipeline = <span class="cl">Pipeline</span>([
+    (<span class="st">'preprocessor'</span>, preprocessor),
+    (<span class="st">'model'</span>, <span class="cl">RandomForestClassifier</span>())
+])</code></pre>
+    </section>
+
+    <!-- ──────────────────────────────────── CLASSIFIER -->
+    <section id="concepts-classifier">
+      <h2 class="section-title"><span class="section-num" style="background:var(--green)">G</span> Classifier</h2>
+      <p>A <strong>classifier</strong> is a model that predicts which <strong>category (class)</strong> a data point belongs to. The output is always a label from a fixed set.</p>
+
+      <div class="flow">
+        <div class="flow-box">Input features</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box highlight">Classifier</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box green-box">Category label</div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Classifier</th><th>How it thinks</th></tr></thead>
+          <tbody>
+            <tr><td><code>LogisticRegression</code></td><td>Draws a line/boundary between classes</td></tr>
+            <tr><td><code>KNeighborsClassifier</code></td><td>"What do my k nearest neighbours belong to?"</td></tr>
+            <tr><td><code>DecisionTreeClassifier</code></td><td>Asks yes/no questions to narrow down the class</td></tr>
+            <tr><td><code>RandomForestClassifier</code></td><td>Many decision trees vote together</td></tr>
+            <tr><td><code>SVC</code></td><td>Finds the widest possible boundary between classes</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <pre><code><span class="cm"># Hard label — the final decision</span>
+clf.<span class="fn">predict</span>(X_test)         <span class="cm"># → ['spam', 'not spam', 'spam', ...]</span>
+
+<span class="cm"># Probability for each class</span>
+clf.<span class="fn">predict_proba</span>(X_test)   <span class="cm"># → [[0.12, 0.88], [0.95, 0.05], ...]</span></code></pre>
+
+      <div class="grid-2">
+        <div class="mini-card">
+          <div class="label" style="color:var(--accent)">Classifier</div>
+          <div class="value">predicts a CATEGORY</div>
+          <p>"cat", "dog", "spam", 0, 1</p>
+        </div>
+        <div class="mini-card">
+          <div class="label" style="color:var(--accent2)">Regressor</div>
+          <div class="value">predicts a NUMBER</div>
+          <p>house price, temperature, salary</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ──────────────────────────────────── CROSS-VALIDATION -->
+    <section id="concepts-crossval">
+      <h2 class="section-title"><span class="section-num" style="background:#8b5cf6">H</span> Cross-Validation</h2>
+      <p>A way to get a <strong>reliable estimate</strong> of model performance — by training and testing on multiple different splits instead of just one.</p>
+
+      <div class="card warn">
+        <div class="card-label">Problem with a single split</div>
+        <p style="margin:0">One split gives you one number. You can't tell if it's reliable — you may have gotten lucky or unlucky with which rows ended up in the test set.</p>
+      </div>
+
+      <h3>5-Fold Cross-Validation</h3>
+      <pre><code>Fold 1: [<span class="nb">TEST</span> ] [train] [train] [train] [train]  → <span class="nb">0.91</span>
+Fold 2: [train] [<span class="nb">TEST</span> ] [train] [train] [train]  → <span class="nb">0.88</span>
+Fold 3: [train] [train] [<span class="nb">TEST</span> ] [train] [train]  → <span class="nb">0.93</span>
+Fold 4: [train] [train] [train] [<span class="nb">TEST</span> ] [train]  → <span class="nb">0.87</span>
+Fold 5: [train] [train] [train] [train] [<span class="nb">TEST</span> ]  → <span class="nb">0.90</span>
+
+Final = <span class="nb">0.898</span> ± <span class="nb">0.022</span>  <span class="cm"># mean ± std</span></code></pre>
+
+      <pre><code>scores = <span class="fn">cross_val_score</span>(model, X, y, cv=<span class="nb">5</span>, scoring=<span class="st">'accuracy'</span>)
+<span class="fn">print</span>(scores.<span class="fn">mean</span>())   <span class="cm"># reliable estimate</span>
+<span class="fn">print</span>(scores.<span class="fn">std</span>())    <span class="cm"># stability of the model</span></code></pre>
+
+      <div class="card tip">
+        <div class="card-label">💡 The std tells you stability</div>
+        <p style="margin:0">Model A: <code>0.91 ± 0.01</code> — trustworthy · Model B: <code>0.91 ± 0.15</code> — same mean but wildly unstable. Always use Pipeline inside CV to prevent leakage.</p>
+      </div>
+    </section>
+
+    <!-- ──────────────────────────────────── HYPERPARAMETER TUNING -->
+    <section id="concepts-hyperparams">
+      <h2 class="section-title"><span class="section-num" style="background:var(--accent3)">I</span> Hyperparameter Tuning</h2>
+      <p>Finding the <strong>best settings</strong> for your model — knobs you set <em>before</em> training, not values the model learns itself.</p>
+
+      <div class="grid-2">
+        <div class="mini-card">
+          <div class="label" style="color:var(--accent3)">Hyperparameters — YOU set</div>
+          <pre style="margin:8px 0 0"><code>RandomForestClassifier(
+  n_estimators=100,
+  max_depth=5
+)</code></pre>
+        </div>
+        <div class="mini-card">
+          <div class="label" style="color:var(--green)">Parameters — MODEL learns</div>
+          <pre style="margin:8px 0 0"><code>clf.fit(X_train, y_train)
+# → feature_importances_
+# → n_features_in_</code></pre>
+        </div>
+      </div>
+
+      <h3>GridSearchCV — try every combination</h3>
+      <pre><code>param_grid = {
+    <span class="st">'clf__n_estimators'</span>: [<span class="nb">50</span>, <span class="nb">100</span>, <span class="nb">200</span>],   <span class="cm"># 3 options</span>
+    <span class="st">'clf__max_depth'</span>:    [<span class="nb">3</span>, <span class="nb">5</span>, <span class="nb">10</span>, <span class="kw">None</span>]  <span class="cm"># 4 options</span>
+}                                           <span class="cm"># 3×4=12 combos × 5-fold = 60 fits</span>
+
+grid = <span class="cl">GridSearchCV</span>(pipe, param_grid, cv=<span class="nb">5</span>, scoring=<span class="st">'accuracy'</span>, n_jobs=-<span class="nb">1</span>)
+grid.<span class="fn">fit</span>(X_train, y_train)
+
+<span class="fn">print</span>(grid.best_params_)      <span class="cm"># {'clf__max_depth': 5, 'clf__n_estimators': 100}</span>
+<span class="fn">print</span>(grid.best_score_)       <span class="cm"># best CV accuracy</span>
+best_model = grid.best_estimator_  <span class="cm"># ready to use</span></code></pre>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th></th><th>GridSearchCV</th><th>RandomizedSearchCV</th></tr></thead>
+          <tbody>
+            <tr><td>Tries</td><td>Every combination</td><td>Random sample</td></tr>
+            <tr><td>Best for</td><td>Small grids</td><td>Large grids</td></tr>
+            <tr><td>Speed</td><td>Slow</td><td>Fast</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card warn">
+        <div class="card-label">⚠ Golden Rule</div>
+        <p style="margin:0">Never tune hyperparameters using the test set. Evaluate the best model on test data <strong>only once</strong> at the very end — otherwise your test score is optimistic and misleading.</p>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  // Highlight active TOC link on scroll
+  const sections = document.querySelectorAll('section[id]');
+  const links = document.querySelectorAll('.toc a');
+
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`.toc a[href="#${e.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+
+  sections.forEach(s => obs.observe(s));
+</script>
+
+</body>
+</html>
