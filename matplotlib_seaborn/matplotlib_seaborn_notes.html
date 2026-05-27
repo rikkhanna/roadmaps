@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matplotlib &amp; Seaborn Notes</title>
+    <meta name="description" content="Comprehensive Matplotlib and Seaborn cheat sheet covering plots, subplots, heatmaps, styling, and animations.">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Fira+Code:wght@400;500&display=swap');
+
+        :root {
+            --bg-color: #0d1117;
+            --card-bg: rgba(22, 32, 51, 0.72);
+            --text-main: #f0f6fc;
+            --text-muted: #b0bcce;
+            --accent-primary: #58a6ff;    /* sky blue — distinct from pandas emerald */
+            --accent-secondary: #d2a8ff;  /* soft violet */
+            --accent-tertiary: #ffa657;   /* amber for highlights */
+            --code-bg: #161b27;
+            --code-text: #79c0ff;
+            --border-color: rgba(255, 255, 255, 0.09);
+            --tag-bg: rgba(88, 166, 255, 0.12);
+            --tag-color: #79c0ff;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 44px 20px 80px;
+            line-height: 1.7;
+            background-image:
+                radial-gradient(at 0%   0%,  hsla(215,70%,10%,1) 0, transparent 55%),
+                radial-gradient(at 60%  0%,  hsla(240,60%,20%,0.4) 0, transparent 50%),
+                radial-gradient(at 100% 50%, hsla(270,55%,22%,0.35) 0, transparent 50%);
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+
+        .container { max-width: 960px; margin: 0 auto; }
+
+        /* ── Header ── */
+        header {
+            text-align: center;
+            margin-bottom: 52px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #58a6ff, #d2a8ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0 0 8px;
+        }
+
+        .subtitle { color: var(--text-muted); font-size: 1.1rem; }
+
+        /* ── Nav pills ── */
+        .nav-pills {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 50px;
+            animation: fadeInDown 0.9s ease-out backwards;
+            animation-delay: 0.1s;
+        }
+
+        .nav-pills a {
+            text-decoration: none;
+            background: rgba(88, 166, 255, 0.1);
+            color: var(--accent-primary);
+            border: 1px solid rgba(88, 166, 255, 0.28);
+            padding: 6px 16px;
+            border-radius: 999px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            transition: background 0.2s, transform 0.2s;
+        }
+
+        .nav-pills a:hover {
+            background: rgba(88, 166, 255, 0.22);
+            transform: translateY(-2px);
+        }
+
+        /* ── Cards ── */
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            padding: 32px;
+            margin-bottom: 32px;
+            box-shadow: 0 4px 32px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            animation: fadeInUp 0.7s ease-out backwards;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 14px 52px rgba(0, 0, 0, 0.28);
+            border-color: rgba(88, 166, 255, 0.22);
+        }
+
+        .card:nth-child(1)  { animation-delay: 0.10s; }
+        .card:nth-child(2)  { animation-delay: 0.18s; }
+        .card:nth-child(3)  { animation-delay: 0.26s; }
+        .card:nth-child(4)  { animation-delay: 0.34s; }
+        .card:nth-child(5)  { animation-delay: 0.42s; }
+        .card:nth-child(6)  { animation-delay: 0.50s; }
+        .card:nth-child(7)  { animation-delay: 0.58s; }
+        .card:nth-child(8)  { animation-delay: 0.66s; }
+        .card:nth-child(9)  { animation-delay: 0.74s; }
+        .card:nth-child(10) { animation-delay: 0.82s; }
+
+        .card h2 {
+            font-size: 1.72rem;
+            margin: 0 0 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--accent-primary);
+        }
+
+        .card h2 .icon {
+            font-family: 'Fira Code', monospace;
+            background: rgba(88, 166, 255, 0.15);
+            color: #79c0ff;
+            width: 38px;
+            height: 38px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        /* ── Sub-sections ── */
+        .section-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--accent-tertiary);
+            margin-top: 26px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.09em;
+            border-bottom: 1px solid rgba(255, 166, 87, 0.22);
+            padding-bottom: 4px;
+        }
+
+        /* ── Text ── */
+        p { color: var(--text-muted); margin-bottom: 14px; }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0 0 14px;
+        }
+
+        li {
+            margin-bottom: 9px;
+            padding-left: 22px;
+            position: relative;
+            color: var(--text-muted);
+        }
+
+        li::before {
+            content: '▹';
+            position: absolute;
+            left: 0;
+            color: var(--accent-secondary);
+        }
+
+        li li::before { content: '◦'; color: var(--accent-tertiary); }
+
+        /* ── Code ── */
+        code, pre { font-family: 'Fira Code', monospace; }
+
+        code {
+            background: var(--code-bg);
+            color: var(--code-text);
+            padding: 2px 7px;
+            border-radius: 5px;
+            font-size: 0.88em;
+        }
+
+        pre {
+            background: var(--code-bg);
+            padding: 18px 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            color: #e2e8f0;
+            font-size: 0.91em;
+            line-height: 1.65;
+            margin-bottom: 16px;
+        }
+
+        pre code { background: transparent; color: inherit; padding: 0; }
+
+        /* Syntax colouring */
+        .kw  { color: #d2a8ff; }   /* keywords */
+        .fn  { color: #79c0ff; }   /* function calls */
+        .str { color: #a5d6ff; }   /* strings */
+        .cm  { color: #4a5568; font-style: italic; } /* comments */
+        .num { color: #ffa657; }   /* numbers */
+        .op  { color: #8b949e; }   /* operators */
+
+        /* ── Badge ── */
+        .badge {
+            display: inline-block;
+            background: var(--tag-bg);
+            color: var(--tag-color);
+            padding: 2px 9px;
+            border-radius: 12px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        /* ── Two-column grid ── */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 680px) {
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+            h1 { font-size: 2.2rem; }
+        }
+
+        .mini-card {
+            background: rgba(13, 17, 23, 0.55);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 14px 16px;
+        }
+
+        .mini-card strong {
+            display: block;
+            color: var(--accent-primary);
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+        }
+
+        .mini-card p { margin: 0; font-size: 0.875rem; }
+
+        /* ── Callout box ── */
+        .callout {
+            background: rgba(255, 166, 87, 0.07);
+            border-left: 3px solid var(--accent-tertiary);
+            border-radius: 0 8px 8px 0;
+            padding: 12px 16px;
+            margin: 16px 0;
+            color: var(--text-muted);
+            font-size: 0.91rem;
+        }
+
+        .callout strong { color: var(--accent-tertiary); }
+
+        .callout-blue {
+            background: rgba(88, 166, 255, 0.07);
+            border-left: 3px solid var(--accent-primary);
+            border-radius: 0 8px 8px 0;
+            padding: 12px 16px;
+            margin: 16px 0;
+            color: var(--text-muted);
+            font-size: 0.91rem;
+        }
+
+        .callout-blue strong { color: var(--accent-primary); }
+
+        /* ── Param table ── */
+        .param-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+            margin-bottom: 16px;
+        }
+
+        .param-table th {
+            text-align: left;
+            padding: 8px 12px;
+            background: rgba(88, 166, 255, 0.1);
+            color: var(--accent-primary);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .param-table td {
+            padding: 8px 12px;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: top;
+        }
+
+        .param-table tr:last-child td { border-bottom: none; }
+
+        .param-table td code { font-size: 0.84em; }
+
+        /* ── Animations ── */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <header>
+        <h1>Matplotlib &amp; Seaborn</h1>
+        <div class="subtitle">plots · subplots · heatmaps · styling · animation</div>
+    </header>
+
+    <nav class="nav-pills" aria-label="Jump to section">
+        <a href="#anatomy">Figure Anatomy</a>
+        <a href="#basic-plots">Basic Plots</a>
+        <a href="#subplots">Subplots</a>
+        <a href="#styling">Styling</a>
+        <a href="#heatmaps">Heatmaps</a>
+        <a href="#seaborn">Seaborn</a>
+        <a href="#statistical">Statistical Plots</a>
+        <a href="#animation">Animation</a>
+        <a href="#saving">Saving &amp; Output</a>
+        <a href="#tips">Pro Tips</a>
+    </nav>
+
+    <!-- ═══════════════════════════════════
+         1 · FIGURE ANATOMY
+    ════════════════════════════════════ -->
+    <div class="card" id="anatomy">
+        <h2><span class="icon">🎨</span> Figure Anatomy</h2>
+        <p>Matplotlib uses a hierarchical object model. Understanding it is the key to unlocking fine-grained control over every part of a plot.</p>
+
+        <div class="section-title">The Object Hierarchy</div>
+        <div class="grid-3">
+            <div class="mini-card">
+                <strong>Figure</strong>
+                <p>The top-level canvas. Contains all Axes, titles, colorbars etc. Created with <code>plt.figure()</code>.</p>
+            </div>
+            <div class="mini-card">
+                <strong>Axes</strong>
+                <p>A single plot area with its own x/y (or z) axes. One Figure can hold many Axes.</p>
+            </div>
+            <div class="mini-card">
+                <strong>Artist</strong>
+                <p>Everything drawn on screen is an Artist: lines, text, patches, collections…</p>
+            </div>
+        </div>
+
+        <div class="section-title">Two Interfaces — pyplot vs OO</div>
+        <pre><code><span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+<span class="cm"># ── 1. pyplot (stateful / MATLAB-style) ──────────────────────────</span>
+<span class="cm">#    Quick, interactive. plt.* calls apply to the "current" Axes.</span>
+plt.<span class="fn">plot</span>([<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>], [<span class="num">4</span>, <span class="num">7</span>, <span class="num">2</span>])
+plt.<span class="fn">title</span>(<span class="str">'My Plot'</span>)
+plt.<span class="fn">show</span>()
+
+<span class="cm"># ── 2. Object-Oriented (recommended for serious work) ────────────</span>
+<span class="cm">#    Explicit control; scales to complex multi-panel figures.</span>
+fig, ax = plt.<span class="fn">subplots</span>()          <span class="cm"># returns Figure + Axes</span>
+ax.<span class="fn">plot</span>([<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>], [<span class="num">4</span>, <span class="num">7</span>, <span class="num">2</span>])
+ax.<span class="fn">set_title</span>(<span class="str">'My Plot'</span>)
+plt.<span class="fn">show</span>()</code></pre>
+
+        <div class="section-title">Key Axes Methods at a Glance</div>
+        <div class="grid-2">
+            <div class="mini-card"><strong>ax.set_title(s)</strong><p>Set the Axes title.</p></div>
+            <div class="mini-card"><strong>ax.set_xlabel / ylabel</strong><p>Label the x or y axis.</p></div>
+            <div class="mini-card"><strong>ax.set_xlim / ylim(lo, hi)</strong><p>Set axis data limits.</p></div>
+            <div class="mini-card"><strong>ax.legend()</strong><p>Show legend (reads <code>label=</code> kwargs).</p></div>
+            <div class="mini-card"><strong>ax.grid(True)</strong><p>Toggle grid lines.</p></div>
+            <div class="mini-card"><strong>ax.tick_params()</strong><p>Customise tick size, colour, direction.</p></div>
+            <div class="mini-card"><strong>ax.set_aspect('equal')</strong><p>Force equal x and y scaling.</p></div>
+            <div class="mini-card"><strong>ax.invert_xaxis()</strong><p>Flip axis direction.</p></div>
+        </div>
+
+        <div class="callout"><strong>Tip:</strong> Use the OO interface (<code>fig, ax = plt.subplots()</code>) for anything beyond a single quick plot. It makes your code reusable, testable, and avoids hidden global state bugs.</div>
+    </div>
+
+    <!-- ═══════════════════════════════════
+         2 · BASIC PLOTS
+    ════════════════════════════════════ -->
+    <div class="card" id="basic-plots">
+        <h2><span class="icon">📈</span> Basic Plot Types</h2>
+        <p>Matplotlib supports dozens of plot types via <code>ax.*</code> methods. Here are the most essential ones with their key parameters.</p>
+
+        <div class="section-title">Line Plot</div>
+        <pre><code>x = np.<span class="fn">linspace</span>(<span class="num">0</span>, <span class="num">2</span> * np.pi, <span class="num">200</span>)
+
+fig, ax = plt.<span class="fn">subplots</span>(figsize=(<span class="num">8</span>, <span class="num">4</span>))
+ax.<span class="fn">plot</span>(x, np.<span class="fn">sin</span>(x),
+       color=<span class="str">'#58a6ff'</span>,       <span class="cm"># hex / named / 'C0'–'C9'</span>
+       linewidth=<span class="num">2</span>,
+       linestyle=<span class="str">'--'</span>,        <span class="cm"># '-' ':' '-.' 'None'</span>
+       marker=<span class="str">'o'</span>,            <span class="cm"># 'o' '^' 's' 'D' 'x' '+'</span>
+       markersize=<span class="num">4</span>,
+       markevery=<span class="num">20</span>,          <span class="cm"># plot marker every N points</span>
+       alpha=<span class="num">0.85</span>,
+       label=<span class="str">'sin(x)'</span>)
+
+ax.<span class="fn">plot</span>(x, np.<span class="fn">cos</span>(x), label=<span class="str">'cos(x)'</span>, color=<span class="str">'#d2a8ff'</span>)
+ax.<span class="fn">legend</span>(framealpha=<span class="num">0.3</span>)
+ax.<span class="fn">set_title</span>(<span class="str">'Trigonometric Functions'</span>)</code></pre>
+
+        <div class="section-title">Scatter Plot</div>
+        <pre><code>rng = np.random.<span class="fn">default_rng</span>(<span class="num">42</span>)
+x   = rng.<span class="fn">normal</span>(<span class="num">0</span>, <span class="num">1</span>, <span class="num">300</span>)
+y   = x * <span class="num">0.6</span> + rng.<span class="fn">normal</span>(<span class="num">0</span>, <span class="num">0.8</span>, <span class="num">300</span>)
+c   = np.<span class="fn">hypot</span>(x, y)      <span class="cm"># colour mapped to distance from origin</span>
+
+fig, ax = plt.<span class="fn">subplots</span>()
+sc = ax.<span class="fn">scatter</span>(x, y,
+                c=c,              <span class="cm"># colour array or single colour</span>
+                cmap=<span class="str">'plasma'</span>,   <span class="cm"># see plt.colormaps()</span>
+                s=<span class="num">40</span>,             <span class="cm"># marker size in points²</span>
+                alpha=<span class="num">0.7</span>,
+                edgecolors=<span class="str">'none'</span>)
+fig.<span class="fn">colorbar</span>(sc, ax=ax, label=<span class="str">'Distance'</span>)</code></pre>
+
+        <div class="section-title">Bar Chart</div>
+        <pre><code>labels  = [<span class="str">'Python'</span>, <span class="str">'Rust'</span>, <span class="str">'Go'</span>, <span class="str">'Julia'</span>, <span class="str">'C++'</span>]
+values  = [<span class="num">68</span>, <span class="num">84</span>, <span class="num">62</span>, <span class="num">73</span>, <span class="num">55</span>]
+
+fig, ax = plt.<span class="fn">subplots</span>(figsize=(<span class="num">7</span>, <span class="num">4</span>))
+bars = ax.<span class="fn">bar</span>(labels, values,
+              color=<span class="str">'#58a6ff'</span>,
+              edgecolor=<span class="str">'white'</span>, linewidth=<span class="num">0.5</span>,
+              width=<span class="num">0.6</span>)
+
+<span class="cm"># Annotate bar heights</span>
+<span class="kw">for</span> bar <span class="kw">in</span> bars:
+    ax.<span class="fn">text</span>(bar.<span class="fn">get_x</span>() + bar.<span class="fn">get_width</span>() / <span class="num">2</span>,
+            bar.<span class="fn">get_height</span>() + <span class="num">1</span>,
+            <span class="fn">str</span>(bar.<span class="fn">get_height</span>()),
+            ha=<span class="str">'center'</span>, va=<span class="str">'bottom'</span>, fontsize=<span class="num">9</span>)
+
+<span class="cm"># Horizontal bar chart</span>
+ax.<span class="fn">barh</span>(labels, values, color=<span class="str">'#d2a8ff'</span>)</code></pre>
+
+        <div class="section-title">Histogram</div>
+        <pre><code>data = rng.<span class="fn">normal</span>(<span class="num">60</span>, <span class="num">15</span>, <span class="num">1000</span>)
+
+fig, ax = plt.<span class="fn">subplots</span>()
+ax.<span class="fn">hist</span>(data,
+       bins=<span class="num">30</span>,              <span class="cm"># int, or array of edges, or 'auto'</span>
+       density=<span class="kw">False</span>,        <span class="cm"># True → normalise to probability density</span>
+       histtype=<span class="str">'stepfilled'</span>, <span class="cm"># 'bar' 'step' 'stepfilled'</span>
+       color=<span class="str">'#58a6ff'</span>, alpha=<span class="num">0.75</span>,
+       edgecolor=<span class="str">'white'</span>, linewidth=<span class="num">0.4</span>)
+
+<span class="cm"># Overlay two distributions</span>
+ax.<span class="fn">hist</span>(data2, bins=<span class="num">30</span>, alpha=<span class="num">0.55</span>, color=<span class="str">'#ffa657'</span>, label=<span class="str">'Group B'</span>)</code></pre>
+
+        <div class="section-title">Pie &amp; Fill</div>
+        <pre><code><span class="cm"># Pie chart</span>
+sizes  = [<span class="num">40</span>, <span class="num">25</span>, <span class="num">20</span>, <span class="num">15</span>]
+labels = [<span class="str">'A'</span>, <span class="str">'B'</span>, <span class="str">'C'</span>, <span class="str">'D'</span>]
+ax.<span class="fn">pie</span>(sizes, labels=labels,
+       explode=(<span class="num">0.05</span>, <span class="num">0</span>, <span class="num">0</span>, <span class="num">0</span>),  <span class="cm"># offset slice A</span>
+       autopct=<span class="str">'%1.1f%%'</span>,
+       startangle=<span class="num">90</span>)
+ax.<span class="fn">axis</span>(<span class="str">'equal'</span>)  <span class="cm"># makes it circular</span>
+
+<span class="cm"># Fill between curves</span>
+ax.<span class="fn">fill_between</span>(x, np.<span class="fn">sin</span>(x), np.<span class="fn">cos</span>(x),
+                where=(np.<span class="fn">sin</span>(x) > np.<span class="fn">cos</span>(x)),
+                alpha=<span class="num">0.3</span>, color=<span class="str">'#58a6ff'</span>,
+                label=<span class="str">'sin > cos'</span>)</code></pre>
+
+        <div class="callout"><strong>Note:</strong> Every <code>ax.plot()</code> call returns a list of <code>Line2D</code> objects. You can modify them later: <code>line, = ax.plot(...)</code> then <code>line.set_color('red')</code>. This is the foundation of animations.</div>
+    </div>
+
+    <!-- ═══════════════════════════════════
+         3 · SUBPLOTS
+    ════════════════════════════════════ -->
+    <div class="card" id="subplots">
+        <h2><span class="icon">⊞</span> Subplots &amp; Layouts</h2>
+        <p>Matplotlib provides several ways to arrange multiple Axes inside a Figure — from simple grids to fully custom mosaic layouts.</p>
+
+        <div class="section-title">plt.subplots() — regular grid</div>
+        <pre><code><span class="cm"># Single row of 3 Axes</span>
+fig, axes = plt.<span class="fn">subplots</span>(nrows=<span class="num">1</span>, ncols=<span class="num">3</span>,
+                          figsize=(<span class="num">12</span>, <span class="num">4</span>),
+                          sharey=<span class="kw">True</span>)    <span class="cm"># share y-axis range</span>
+
+<span class="cm"># 2×2 grid — axes is a 2-D numpy array</span>
+fig, axes = plt.<span class="fn">subplots</span>(<span class="num">2</span>, <span class="num">2</span>, figsize=(<span class="num">10</span>, <span class="num">8</span>))
+axes[<span class="num">0</span>, <span class="num">0</span>].<span class="fn">plot</span>(x, y)
+axes[<span class="num">0</span>, <span class="num">1</span>].<span class="fn">scatter</span>(x, y)
+axes[<span class="num">1</span>, <span class="num">0</span>].<span class="fn">hist</span>(data)
+axes[<span class="num">1</span>, <span class="num">1</span>].<span class="fn">bar</span>(labels, vals)
+
+<span class="cm"># Flatten to 1-D for easy iteration</span>
+<span class="kw">for</span> ax <span class="kw">in</span> axes.<span class="fn">flat</span>:
+    ax.<span class="fn">set_xlabel</span>(<span class="str">'x'</span>)
+
+<span class="cm"># Auto-adjust padding between subplots</span>
+fig.<span class="fn">tight_layout</span>(pad=<span class="num">2.0</span>)</code></pre>
+
+        <div class="section-title">GridSpec — irregular layouts</div>
+        <pre><code><span class="kw">import</span> matplotlib.gridspec <span class="kw">as</span> gridspec
+
+fig = plt.<span class="fn">figure</span>(figsize=(<span class="num">10</span>, <span class="num">6</span>))
+gs  = gridspec.<span class="fn">GridSpec</span>(<span class="num">2</span>, <span class="num">3</span>,
+                          hspace=<span class="num">0.4</span>,
+                          wspace=<span class="num">0.3</span>)
+
+ax_main  = fig.<span class="fn">add_subplot</span>(gs[<span class="num">0</span>, :])    <span class="cm"># spans all 3 columns in row 0</span>
+ax_left  = fig.<span class="fn">add_subplot</span>(gs[<span class="num">1</span>, <span class="num">0</span>:<span class="num">2</span>]) <span class="cm"># spans 2 cols</span>
+ax_right = fig.<span class="fn">add_subplot</span>(gs[<span class="num">1</span>, <span class="num">2</span>])   <span class="cm"># single cell</span></code></pre>
+
+        <div class="section-title">subplot_mosaic() — named panels (Matplotlib ≥ 3.3)</div>
+        <pre><code>fig, axd = plt.<span class="fn">subplot_mosaic</span>(
+    <span class="str">"""
+    AAAB
+    CCDB
+    """</span>,
+    figsize=(<span class="num">10</span>, <span class="num">6</span>),
+    constrained_layout=<span class="kw">True</span>
+)
+
+<span class="cm"># Access panels by letter</span>
+axd[<span class="str">'A'</span>].<span class="fn">set_title</span>(<span class="str">'Panel A — wide'</span>)
+axd[<span class="str">'B'</span>].<span class="fn">set_title</span>(<span class="str">'Panel B — tall'</span>)</code></pre>
+
+        <div class="section-title">Inset Axes (zoom panel inside a plot)</div>
+        <pre><code><span class="kw">from</span> mpl_toolkits.axes_grid1.inset_locator <span class="kw">import</span> inset_axes
+
+ax_inset = <span class="fn">inset_axes</span>(ax,
+                        width=<span class="str">'35%'</span>,
+                        height=<span class="str">'35%'</span>,
+                        loc=<span class="str">'upper right'</span>)
+ax_inset.<span class="fn">plot</span>(x_zoom, y_zoom)</code></pre>
+
+        <div class="section-title">Shared Axes &amp; Twin Axes</div>
+        <pre><code><span class="cm"># Twin y-axis (different scales on left and right)</span>
+fig, ax1 = plt.<span class="fn">subplots</span>()
+ax2 = ax1.<span class="fn">twinx</span>()      <span class="cm"># shares x-axis; independent y</span>
+
+ax1.<span class="fn">plot</span>(years, revenue,  color=<span class="str">'#58a6ff'</span>, label=<span class="str">'Revenue ($M)'</span>)
+ax2.<span class="fn">plot</span>(years, margin_pct, color=<span class="str">'#ffa657'</span>, label=<span class="str">'Margin %'</span>)
+
+ax1.<span class="fn">set_ylabel</span>(<span class="str">'Revenue ($M)'</span>, color=<span class="str">'#58a6ff'</span>)
+ax2.<span class="fn">set_ylabel</span>(<span class="str">'Margin %'</span>,    color=<span class="str">'#ffa657'</span>)
+
+<span class="cm"># Twin x-axis (independent x, shared y)</span>
+ax3 = ax1.<span class="fn">twiny</span>()</code></pre>
+
+        <div class="callout"><strong>Layout engines:</strong> Use <code>fig.tight_layout()</code> for quick padding fixes, or pass <code>constrained_layout=True</code> to <code>plt.subplots()</code> / <code>plt.figure()</code> for a more robust automatic layout that accounts for colorbars and legends.</div>
+    </div>
+
+    <!-- ═══════════════════════════════════
+         4 · STYLING
+    ════════════════════════════════════ -->
+    <div class="card" id="styling">
+        <h2><span class="icon">✨</span> Styling &amp; Themes</h2>
+        <p>Matplotlib's style system lets you switch between complete visual themes, or fine-tune individual elements with <code>rcParams</code>.</p>
+
+        <div class="section-title">Built-in Style Sheets</div>
+        <pre><code><span class="cm"># List all available styles</span>
+plt.<span class="fn">style</span>.<span class="fn">available</span>       <span class="cm"># returns a list of style names</span>
+
+<span class="cm"># Apply a style globally</span>
+plt.style.<span class="fn">use</span>(<span class="str">'seaborn-v0_8-darkgrid'</span>)
+plt.style.<span class="fn">use</span>(<span class="str">'dark_background'</span>)
+plt.style.<span class="fn">use</span>(<span class="str">'ggplot'</span>)
+plt.style.<span class="fn">use</span>(<span class="str">'fivethirtyeight'</span>)
+plt.style.<span class="fn">use</span>(<span class="str">'bmh'</span>)
+
+<span class="cm"># Temporarily apply (context manager)</span>
+<span class="kw">with</span> plt.style.<span class="fn">context</span>(<span class="str">'seaborn-v0_8-paper'</span>):
+    fig, ax = plt.<span class="fn">subplots</span>()
+    ax.<span class="fn">plot</span>(x, y)
+
+<span class="cm"># Combine two styles (last wins on conflicts)</span>
+plt.style.<span class="fn">use</span>([<span class="str">'dark_background'</span>, <span class="str">'./my_style.mplstyle'</span>])</code></pre>
+
+        <div class="section-title">rcParams — fine-grained control</div>
+        <pre><code><span class="cm"># Read / write any parameter</span>
+plt.rcParams[<span class="str">'figure.figsize'</span>]   = (<span class="num">10</span>, <span class="num">5</span>)
+plt.rcParams[<span class="str">'figure.dpi'</span>]       = <span class="num">150</span>
+plt.rcParams[<span class="str">'axes.spines.top'</span>]  = <span class="kw">False</span>   <span class="cm"># remove top spine</span>
+plt.rcParams[<span class="str">'axes.spines.right'</span>]= <span class="kw">False</span>
+plt.rcParams[<span class="str">'font.family'</span>]      = <span class="str">'DejaVu Sans'</span>
+plt.rcParams[<span class="str">'font.size'</span>]        = <span class="num">12</span>
+plt.rcParams[<span class="str">'axes.titlesize'</span>]   = <span class="num">14</span>
+plt.rcParams[<span class="str">'axes.titleweight'</span>] = <span class="str">'bold'</span>
+plt.rcParams[<span class="str">'lines.linewidth'</span>]  = <span class="num">2</span>
+
+<span class="cm"># Reset to defaults</span>
+plt.<span class="fn">rcdefaults</span>()
+
+<span class="cm"># Or use rc() as a shortcut</span>
+plt.<span class="fn">rc</span>(<span class="str">'axes'</span>, labelsize=<span class="num">13</span>, titlesize=<span class="num">15</span>)
+plt.<span class="fn">rc</span>(<span class="str">'xtick'</span>, labelsize=<span class="num">11</span>)
+plt.<span class="fn">rc</span>(<span class="str">'ytick'</span>, labelsize=<span class="num">11</span>)</code></pre>
+
+        <div class="section-title">Colour Maps</div>
+        <pre><code><span class="cm"># Get a colour from a colourmap (0.0 – 1.0)</span>
+cmap = plt.<span class="fn">get_cmap</span>(<span class="str">'viridis'</span>)
+color = <span class="fn">cmap</span>(<span class="num">0.7</span>)   <span class="cm"># returns RGBA tuple</span>
+
+<span class="cm"># Discrete N colours from a colourmap</span>
+colors = plt.<span class="fn">cm</span>.tab10.<span class="fn">colors</span>      <span class="cm"># exactly 10 colours</span>
+colors = [plt.cm.<span class="fn">viridis</span>(i / N) <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(N)]
+
+<span class="cm"># Perceptually uniform:  viridis  plasma  inferno  magma  cividis</span>
+<span class="cm"># Diverging:             RdBu  coolwarm  bwr  seismic</span>
+<span class="cm"># Sequential:            Blues  Greens  YlOrRd</span>
+<span class="cm"># Categorical:           tab10  tab20  Set1  Set2  Paired</span>
+<span class="cm"># Reverse any:           'viridis_r'</span></code></pre>
+
+        <div class="section-title">Spines, Ticks &amp; Annotations</div>
+        <pre><code><span class="cm"># Remove spines for a cleaner look</span>
+ax.<span class="fn">spines</span>[<span class="str">'top'</span>].<span class="fn">set_visible</span>(<span class="kw">False</span>)
+ax.<span class="fn">spines</span>[<span class="str">'right'</span>].<span class="fn">set_visible</span>(<span class="kw">False</span>)
+
+<span class="cm"># Tick formatting</span>
+ax.<span class="fn">set_xticks</span>([<span class="num">0</span>, <span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>])
+ax.<span class="fn">set_xticklabels</span>([<span class="str">'Q1'</span>, <span class="str">'Q2'</span>, <span class="str">'Q3'</span>, <span class="str">'Q4'</span>], rotation=<span class="num">45</span>, ha=<span class="str">'right'</span>)
+
+<span class="cm"># Major and minor locators</span>
+<span class="kw">from</span> matplotlib.ticker <span class="kw">import</span> MultipleLocator, FuncFormatter
+ax.xaxis.<span class="fn">set_major_locator</span>(<span class="fn">MultipleLocator</span>(<span class="num">10</span>))
+ax.xaxis.<span class="fn">set_minor_locator</span>(<span class="fn">MultipleLocator</span>(<span class="num">2</span>))
+ax.yaxis.<span class="fn">set_major_formatter</span>(<span class="fn">FuncFormatter</span>(<span class="kw">lambda</span> v, _: <span class="str">f'${v:,.0f}'</span>))
+
+<span class="cm"># Text annotation with arrow</span>
+ax.<span class="fn">annotate</span>(<span class="str">'Peak'</span>,
+            xy=(<span class="num">3.0</span>, <span class="num">0.99</span>),           <span class="cm"># arrow tip</span>
+            xytext=(<span class="num">4.5</span>, <span class="num">0.8</span>),        <span class="cm"># text position</span>
+            arrowprops=<span class="fn">dict</span>(arrowstyle=<span class="str">'->'</span>, color=<span class="str">'white'</span>),
+            fontsize=<span class="num">10</span>, color=<span class="str">'white'</span>)</code></pre>
+
+        <div class="callout-blue"><strong>Custom style files (.mplstyle):</strong> Create a text file with rcParam entries and load it with <code>plt.style.use('./my.mplstyle')</code>. Place it in <code>~/.config/matplotlib/stylelib/</code> to use by name from anywhere.</div>
+    </div>
+
+    <!-- ═══════════════════════════════════
+         5 · HEATMAPS
+    ════════════════════════════════════ -->
+    <div class="card" id="heatmaps">
+        <h2><span class="icon">🌡️</span> Heatmaps</h2>
+        <p>Heatmaps encode a 2-D matrix of values as colour intensities. Matplotlib provides <code>imshow</code> and <code>pcolormesh</code>; Seaborn wraps these into a polished <code>heatmap()</code>.</p>
+
+        <div class="section-title">ax.imshow() — image-style heatmap</div>
+        <pre><code>data = np.<span class="fn">random.rand</span>(<span class="num">10</span>, <span class="num">12</span>)
+
+fig, ax = plt.<span class="fn">subplots</span>(figsize=(<span class="num">9</span>, <span class="num">5</span>))
+im = ax.<span class="fn">imshow</span>(data,
+               cmap=<span class="str">'viridis'</span>,    <span class="cm"># colour map</span>
+               aspect=<span class="str">'auto'</span>,     <span class="cm"># 'equal' | 'auto' | float</span>
+               vmin=<span class="num">0</span>, vmax=<span class="num">1</span>,   <span class="cm"># clamp colour range</span>
+               interpolation=<span class="str">'nearest'</span>)  <span class="cm"># no smoothing</span>
+
+fig.<span class="fn">colorbar</span>(im, ax=ax, shrink=<span class="num">0.8</span>, label=<span class="str">'Value'</span>)
+
+<span class="cm"># Add cell value annotations</span>
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(data.shape[<span class="num">0</span>]):
+    <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(data.shape[<span class="num">1</span>]):
+        ax.<span class="fn">text</span>(j, i, <span class="str">f'{data[i, j]:.2f}'</span>,
+               ha=<span class="str">'center'</span>, va=<span class="str">'center'</span>,
+               color=<span class="str">'white'</span> <span class="kw">if</span> data[i,j] < <span class="num">0.5</span> <span class="kw">else</span> <span class="str">'black'</span>,
+               fontsize=<span class="num">7</span>)</code></pre>
+
+        <div class="section-title">ax.pcolormesh() — irregular grids</div>
+        <pre><code><span class="cm"># Better for non-uniform grids; no colour blending between cells</span>
+fig, ax = plt.<span class="fn">subplots</span>()
+mesh = ax.<span class="fn">pcolormesh</span>(X, Y, Z,
+                      cmap=<span class="str">'RdBu_r'</span>,
+                      shading=<span class="str">'auto'</span>)     <span class="cm"># 'flat' | 'gouraud' | 'nearest' | 'auto'</span>
+fig.<span class="fn">colorbar</span>(mesh, ax=ax)</code></pre>
+
+        <div class="section-title">Seaborn heatmap() — correlation matrices</div>
+        <pre><code><span class="kw">import</span> seaborn <span class="kw">as</span> sns
+<span class="kw">import</span> pandas <span class="kw">as</span> pd
+
+<span class="cm"># Correlation matrix heatmap</span>
+df = sns.<span class="fn">load_dataset</span>(<span class="str">'penguins'</span>).<span class="fn">dropna</span>()
+corr = df.<span class="fn">select_dtypes</span>(<span class="str">'number'</span>).<span class="fn">corr</span>()
+
+fig, ax = plt.<span class="fn">subplots</span>(figsize=(<span class="num">7</span>, <span class="num">6</span>))
+sns.<span class="fn">heatmap</span>(corr,
+            ax=ax,
+            annot=<span class="kw">True</span>,           <span class="cm"># show values in cells</span>
+            fmt=<span class="str">'.2f'</span>,            <span class="cm"># float format string</span>
+            cmap=<span class="str">'coolwarm'</span>,
+            vmin=-<span class="num">1</span>, vmax=<span class="num">1</span>,
+            center=<span class="num">0</span>,             <span class="cm"># 0 = white for diverging maps</span>
+            linewidths=<span class="num">0.5</span>,
+            square=<span class="kw">True</span>,
+            cbar_kws={<span class="str">'shrink'</span>: <span class="num">0.8</span>})</code></pre>
+
+        <div class="section-title">Clustered Heatmap (clustermap)</div>
+        <pre><code><span class="cm"># Hierarchically clusters rows and columns automatically</span>
+g = sns.<span class="fn">clustermap</span>(corr,
+                    cmap=<span class="str">'vlag'</span>,
+                    standard_scale=<span class="num">1</span>,   <span class="cm"># z-score columns</span>
+                    figsize=(<span class="num">8</span>, <span class="num">8</span>),
+                    annot=<span class="kw">True</span>, fmt=<span class="str">'.1f'</span>)
+g.ax_heatmap.<span class="fn">set_title</span>(<span class="str">'Clustered Correlation'</span>)</code></pre>
+
+        <div class="callout"><strong>Diverging vs Sequential:</strong> Use a <em>diverging</em> colourmap (<code>coolwarm</code>, <code>RdBu</code>) when data has a meaningful midpoint (e.g., correlation 0, delta from baseline). Use a <em>sequential</em> map (<code>viridis</code>, <code>Blues</code>) for magnitude-only data.</div>
+    </div>
+
+    <!-- ═══════════════════════════════════
+         6 · SEABORN FUNDAMENTALS
+    ════════════════════════════════════ -->
+    <div class="card" id="seaborn">
+        <h2><span class="icon">🐚</span> Seaborn Fundamentals</h2>
+        <p>Seaborn is a high-level statistical visualisation library built on Matplotlib. It integrates tightly with Pandas DataFrames and produces beautiful plots with minimal code.</p>
+
+        <div class="section-title">Figure-level vs Axes-level Functions</div>
+        <div class="grid-2">
+            <div class="mini-card">
+                <strong>Figure-level (e.g. relplot, displot, catplot)</strong>
+                <p>Return a <code>FacetGrid</code> object. Accept <code>col=</code>/<code>row=</code> for faceting. Manage their own Figure. Use <code>g.figure</code> / <code>g.axes</code> to access internals.</p>
+            </div>
+            <div class="mini-card">
+                <strong>Axes-level (e.g. scatterplot, histplot, boxplot)</strong>
+                <p>Accept an <code>ax=</code> parameter; draw on an existing Axes. Easier to embed in multi-panel Matplotlib figures.</p>
+            </div>
+        </div>
+
+        <div class="section-title">Theme &amp; Context</div>
+        <pre><code><span class="cm"># Set the overall aesthetic theme</span>
+sns.<span class="fn">set_theme</span>(style=<span class="str">'darkgrid'</span>)   <span class="cm"># 'whitegrid' 'dark' 'white' 'ticks'</span>
+sns.<span class="fn">set_theme</span>(style=<span class="str">'ticks'</span>, palette=<span class="str">'deep'</span>, font_scale=<span class="num">1.2</span>)
+
+<span class="cm"># Scaling for different output contexts</span>
+sns.<span class="fn">set_context</span>(<span class="str">'notebook'</span>)   <span class="cm"># 'paper' 'notebook' 'talk' 'poster'</span>
+
+<span class="cm"># Colour palettes</span>
+sns.<span class="fn">set_palette</span>(<span class="str">'husl'</span>)
+palette = sns.<span class="fn">color_palette</span>(<span class="str">'muted'</span>, n_colors=<span class="num">6</span>)
+palette = sns.<span class="fn">color_palette</span>(<span class="str">'rocket_r'</span>)  <span class="cm"># continuous</span>
+sns.<span class="fn">palplot</span>(palette)                     <span class="cm"># visualise it</span></code></pre>
+
+        <div class="section-title">Core Seaborn Parameters</div>
+        <table class="param-table">
+            <thead>
+                <tr><th>Parameter</th><th>Purpose</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><code>data=</code></td><td>Pandas DataFrame (or dict) as the data source</td></tr>
+                <tr><td><code>x=, y=</code></td><td>Column names (or array-like) for axes</td></tr>
+                <tr><td><code>hue=</code></td><td>Column to colour-encode</td></tr>
+                <tr><td><code>size=</code></td><td>Column to size-encode (scatter / line)</td></tr>
+                <tr><td><code>style=</code></td><td>Column to marker/linestyle-encode</td></tr>
+                <tr><td><code>col= / row=</code></td><td>Facet variables (figure-level only)</td></tr>
+                <tr><td><code>palette=</code></td><td>Colour palette name or list</td></tr>
+                <tr><td><code>ax=</code></td><td>Target Axes object (axes-level only)</td></tr>
+            </tbody>
+        </table>
+
+        <div class="section-title">Relational Plots</div>
+        <pre><code>tips = sns.<span class="fn">load_dataset</span>(<span class="str">'tips'</span>)
+
+<span class="cm"># Scatter: axes-level</span>
+sns.<span class="fn">scatterplot</span>(data=tips, x=<span class="str">'total_bill'</span>, y=<span class="str">'tip'</span>,
+               hue=<span class="str">'smoker'</span>, style=<span class="str">'time'</span>, size=<span class="str">'size'</span>)
+
+<span class="cm"># Line: axes-level</span>
+sns.<span class="fn">lineplot</span>(data=flights, x=<span class="str">'year'</span>, y=<span class="str">'passengers'</span>,
+            hue=<span class="str">'month'</span>, ci=<span class="num">95</span>)       <span class="cm"># ci=95 draws 95% confidence band</span>
+
+<span class="cm"># Figure-level with faceting</span>
+g = sns.<span class="fn">relplot</span>(data=tips, x=<span class="str">'total_bill'</span>, y=<span class="str">'tip'</span>,
+               col=<span class="str">'time'</span>, hue=<span class="str">'smoker'</span>, kind=<span class="str">'scatter'</span>)</code></pre>
+
+        <div class="callout-blue"><strong>Long vs Wide data:</strong> Seaborn's <code>hue=</code> / <code>col=</code> faceting works best with <em>long-format</em> (tidy) DataFrames. Use <code>pd.melt()</code> to convert wide data before plotting.</div>
+    </div>
+
+    <!-- ═══════════════════════════════════
+         7 · STATISTICAL PLOTS
+    ════════════════════════════════════ -->
+    <div class="card" id="statistical">
+        <h2><span class="icon">📊</span> Statistical Plots</h2>
+        <p>Seaborn's main strength: one-line plots that estimate and visualise distributions, regressions, and categorical summaries — complete with confidence intervals.</p>
+
+        <div class="section-title">Distribution Plots</div>
+        <pre><code>penguins = sns.<span class="fn">load_dataset</span>(<span class="str">'penguins'</span>)
+
+<span class="cm"># Histogram + KDE overlay</span>
+sns.<span class="fn">histplot</span>(data=penguins, x=<span class="str">'flipper_length_mm'</span>,
+            hue=<span class="str">'species'</span>, kde=<span class="kw">True</span>, bins=<span class="num">30</span>)
+
+<span class="cm"># Pure KDE (density estimate)</span>
+sns.<span class="fn">kdeplot</span>(data=penguins, x=<span class="str">'bill_length_mm'</span>,
+           hue=<span class="str">'species'</span>, fill=<span class="kw">True</span>, alpha=<span class="num">0.3</span>)
+
+<span class="cm"># 2-D KDE (joint density)</span>
+sns.<span class="fn">kdeplot</span>(data=penguins, x=<span class="str">'bill_length_mm'</span>,
+           y=<span class="str">'bill_depth_mm'</span>, levels=<span class="num">10</span>, cmap=<span class="str">'mako'</span>)
+
+<span class="cm"># ECDF (empirical CDF)</span>
+sns.<span class="fn">ecdfplot</span>(data=penguins, x=<span class="str">'body_mass_g'</span>, hue=<span class="str">'species'</span>)
+
+<span class="cm"># Full distribution summary — displot figure-level</span>
+g = sns.<span class="fn">displot</span>(data=penguins, x=<span class="str">'flipper_length_mm'</span>,
+               col=<span class="str">'species'</span>, kind=<span class="str">'kde'</span>, fill=<span class="kw">True</span>)</code></pre>
+
+        <div class="section-title">Categorical Plots</div>
+        <pre><code><span class="cm"># Box plot — IQR, median, outliers</span>
+sns.<span class="fn">boxplot</span>(data=tips, x=<span class="str">'day'</span>, y=<span class="str">'tip'</span>, hue=<span class="str">'smoker'</span>)
+
+<span class="cm"># Violin — KDE on both sides + inner box</span>
+sns.<span class="fn">violinplot</span>(data=tips, x=<span class="str">'day'</span>, y=<span class="str">'tip'</span>,
+              inner=<span class="str">'quartile'</span>,  <span class="cm"># 'box' 'point' 'stick' 'quart' None</span>
+              split=<span class="kw">True</span>, hue=<span class="str">'smoker'</span>)
+
+<span class="cm"># Strip (raw data jittered) + Swarm (non-overlapping)</span>
+sns.<span class="fn">stripplot</span>(data=tips, x=<span class="str">'day'</span>, y=<span class="str">'tip'</span>, jitter=<span class="kw">True</span>, alpha=<span class="num">0.5</span>)
+sns.<span class="fn">swarmplot</span>(data=tips, x=<span class="str">'day'</span>, y=<span class="str">'tip'</span>)
+
+<span class="cm"># Bar plot — mean + 95% CI by default</span>
+sns.<span class="fn">barplot</span>(data=tips, x=<span class="str">'day'</span>, y=<span class="str">'total_bill'</span>,
+           hue=<span class="str">'smoker'</span>, errorbar=<span class="str">'ci'</span>)
+
+<span class="cm"># Point plot — like barplot but connected dots</span>
+sns.<span class="fn">pointplot</span>(data=tips, x=<span class="str">'day'</span>, y=<span class="str">'tip'</span>, hue=<span class="str">'smoker'</span>)
+
+<span class="cm"># Count of each category</span>
+sns.<span class="fn">countplot</span>(data=tips, x=<span class="str">'day'</span>, hue=<span class="str">'smoker'</span>)</code></pre>
+
+        <div class="section-title">Regression &amp; Pair Plots</div>
+        <pre><code><span class="cm"># Linear regression with CI band</span>
+sns.<span class="fn">regplot</span>(data=tips, x=<span class="str">'total_bill'</span>, y=<span class="str">'tip'</span>,
+           order=<span class="num">1</span>,     <span class="cm"># polynomial degree (1=linear)</span>
+           ci=<span class="num">95</span>,
+           scatter_kws={<span class="str">'alpha'</span>: <span class="num">0.4</span>})
+
+<span class="cm"># lmplot = regplot + FacetGrid (figure-level)</span>
+sns.<span class="fn">lmplot</span>(data=tips, x=<span class="str">'total_bill'</span>, y=<span class="str">'tip'</span>,
+          col=<span class="str">'time'</span>, hue=<span class="str">'smoker'</span>)
+
+<span class="cm"># Pairplot — all pairwise scatter + diagonal histograms/KDE</span>
+sns.<span class="fn">pairplot</span>(penguins, hue=<span class="str">'species'</span>,
+            diag_kind=<span class="str">'kde'</span>,     <span class="cm"># 'hist' or 'kde' for diagonal</span>
+            plot_kws={<span class="str">'alpha'</span>: <span class="num">0.5</span>})
+
+<span class="cm"># Joint plot — scatter + marginal distributions</span>
+g = sns.<span class="fn">jointplot</span>(data=penguins,
+                  x=<span class="str">'bill_length_mm'</span>, y=<span class="str">'bill_depth_mm'</span>,
+                  hue=<span class="str">'species'</span>,
+                  kind=<span class="str">'scatter'</span>)   <span class="cm"># 'kde' 'hex' 'reg' 'resid'</span></code></pre>
+
+        <div class="callout"><strong>Confidence intervals:</strong> Seaborn computes CIs by bootstrapping by default (<code>n_boot=1000</code>). Pass <code>errorbar=('se', 2)</code> for ±2 standard errors, <code>errorbar='sd'</code> for standard deviation, or <code>errorbar=None</code> to disable.</div>
+    </div>
+
+    <!-- ═══════════════════════════════════
+         8 · ANIMATION
+    ════════════════════════════════════ -->
+    <div class="card" id="animation">
+        <h2><span class="icon">▶️</span> Animation</h2>
+        <p>Matplotlib's <code>animation</code> module provides two main classes for creating animated figures: <code>FuncAnimation</code> for frame-by-frame updates, and <code>ArtistAnimation</code> for pre-rendered frames.</p>
+
+        <div class="section-title">FuncAnimation — the workhorse</div>
+        <pre><code><span class="kw">from</span> matplotlib.animation <span class="kw">import</span> FuncAnimation
+
+fig, ax = plt.<span class="fn">subplots</span>(figsize=(<span class="num">7</span>, <span class="num">4</span>))
+ax.<span class="fn">set_xlim</span>(<span class="num">0</span>, <span class="num">2</span> * np.pi)
+ax.<span class="fn">set_ylim</span>(-<span class="num">1.2</span>, <span class="num">1.2</span>)
+
+line, = ax.<span class="fn">plot</span>([], [], lw=<span class="num">2</span>, color=<span class="str">'#58a6ff'</span>)
+
+<span class="kw">def</span> <span class="fn">init</span>():
+    line.<span class="fn">set_data</span>([], [])
+    <span class="kw">return</span> line,
+
+<span class="kw">def</span> <span class="fn">update</span>(frame):
+    x = np.<span class="fn">linspace</span>(<span class="num">0</span>, <span class="num">2</span> * np.pi, <span class="num">200</span>)
+    y = np.<span class="fn">sin</span>(x - frame * <span class="num">0.1</span>)
+    line.<span class="fn">set_data</span>(x, y)
+    <span class="kw">return</span> line,              <span class="cm"># must return iterable of artists</span>
+
+anim = <span class="fn">FuncAnimation</span>(
+    fig,
+    <span class="fn">update</span>,
+    frames=<span class="num">100</span>,              <span class="cm"># or an iterable / generator</span>
+    init_func=<span class="fn">init</span>,
+    interval=<span class="num">50</span>,             <span class="cm"># milliseconds between frames</span>
+    blit=<span class="kw">True</span>                <span class="cm"># only redraw changed artists (faster)</span>
+)
+plt.<span class="fn">show</span>()</code></pre>
+
+        <div class="section-title">Scatter animation with dynamic colours</div>
+        <pre><code>fig, ax = plt.<span class="fn">subplots</span>()
+sc = ax.<span class="fn">scatter</span>([], [], c=[], cmap=<span class="str">'plasma'</span>, vmin=<span class="num">0</span>, vmax=<span class="num">1</span>)
+
+rng = np.random.<span class="fn">default_rng</span>(<span class="num">0</span>)
+
+<span class="kw">def</span> <span class="fn">update</span>(frame):
+    n = <span class="num">50</span>
+    x = rng.<span class="fn">normal</span>(<span class="num">0</span>, <span class="num">1</span>, n)
+    y = rng.<span class="fn">normal</span>(<span class="num">0</span>, <span class="num">1</span>, n)
+    c = rng.<span class="fn">uniform</span>(<span class="num">0</span>, <span class="num">1</span>, n)
+    sc.<span class="fn">set_offsets</span>(np.<span class="fn">c_</span>[x, y])  <span class="cm"># update positions</span>
+    sc.<span class="fn">set_array</span>(c)               <span class="cm"># update colours</span>
+    <span class="kw">return</span> sc,
+
+anim = <span class="fn">FuncAnimation</span>(fig, update, frames=<span class="num">60</span>, interval=<span class="num">100</span>)</code></pre>
+
+        <div class="section-title">ArtistAnimation — pre-rendered frames</div>
+        <pre><code><span class="kw">from</span> matplotlib.animation <span class="kw">import</span> ArtistAnimation
+
+fig, ax = plt.<span class="fn">subplots</span>()
+frames = []
+
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">20</span>):
+    img = ax.<span class="fn">imshow</span>(np.random.<span class="fn">rand</span>(<span class="num">20</span>, <span class="num">20</span>), cmap=<span class="str">'inferno'</span>,
+                    animated=<span class="kw">True</span>)
+    frames.<span class="fn">append</span>([img])
+
+anim = <span class="fn">ArtistAnimation</span>(fig, frames, interval=<span class="num">100</span>, blit=<span class="kw">True</span>)</code></pre>
+
+        <div class="section-title">Saving Animations</div>
+        <pre><code><span class="cm"># Save as GIF (requires Pillow)</span>
+anim.<span class="fn">save</span>(<span class="str">'wave.gif'</span>, writer=<span class="str">'pillow'</span>, fps=<span class="num">30</span>, dpi=<span class="num">120</span>)
+
+<span class="cm"># Save as MP4 (requires ffmpeg)</span>
+anim.<span class="fn">save</span>(<span class="str">'wave.mp4'</span>, writer=<span class="str">'ffmpeg'</span>, fps=<span class="num">30</span>,
+          extra_args=[<span class="str">'-vcodec'</span>, <span class="str">'libx264'</span>])
+
+<span class="cm"># Embed in Jupyter as HTML5 video</span>
+<span class="kw">from</span> IPython.display <span class="kw">import</span> HTML
+<span class="fn">HTML</span>(anim.<span class="fn">to_html5_video</span>())
+
+<span class="cm"># Or as JS-animated widget (no ffmpeg needed)</span>
+<span class="fn">HTML</span>(anim.<span class="fn">to_jshtml</span>())</code></pre>
+
+        <div class="callout"><strong>Performance:</strong> Set <code>blit=True</code> when only a subset of artists changes each frame. Avoid re-drawing static elements (titles, axes) each frame. For very heavy animations, pre-render to a video file rather than showing in Jupyter.</div>
+    </div>
+
+    <!-- ═══════════════════════════════════
+         9 · SAVING & OUTPUT
+    ════════════════════════════════════ -->
+    <div class="card" id="saving">
+        <h2><span class="icon">💾</span> Saving &amp; Output</h2>
+        <p>Matplotlib can export to a wide variety of formats — vector (PDF, SVG, EPS) and raster (PNG, JPEG, TIFF) — with fine-grained control over resolution and transparency.</p>
+
+        <div class="section-title">savefig()</div>
+        <pre><code>fig.<span class="fn">savefig</span>(
+    <span class="str">'chart.png'</span>,
+    dpi=<span class="num">300</span>,              <span class="cm"># dots per inch (150–300 for print)</span>
+    bbox_inches=<span class="str">'tight'</span>, <span class="cm"># trim whitespace around the figure</span>
+    transparent=<span class="kw">True</span>,    <span class="cm"># transparent background</span>
+    facecolor=<span class="str">'auto'</span>,    <span class="cm"># inherit figure facecolor</span>
+    format=<span class="str">'png'</span>         <span class="cm"># inferred from extension by default</span>
+)
+
+<span class="cm"># Vector formats — resolution-independent</span>
+fig.<span class="fn">savefig</span>(<span class="str">'chart.svg'</span>, bbox_inches=<span class="str">'tight'</span>)
+fig.<span class="fn">savefig</span>(<span class="str">'chart.pdf'</span>, bbox_inches=<span class="str">'tight'</span>)
+
+<span class="cm"># Save to a BytesIO buffer (e.g., for web APIs)</span>
+<span class="kw">import</span> io
+buf = io.<span class="fn">BytesIO</span>()
+fig.<span class="fn">savefig</span>(buf, format=<span class="str">'png'</span>, dpi=<span class="num">150</span>, bbox_inches=<span class="str">'tight'</span>)
+buf.<span class="fn">seek</span>(<span class="num">0</span>)</code></pre>
+
+        <div class="section-title">Jupyter / IPython Inline Display</div>
+        <pre><code><span class="cm"># Inline backend — plots appear in the notebook</span>
+<span class="op">%</span>matplotlib inline
+
+<span class="cm"># Higher-DPI inline plots</span>
+<span class="op">%</span>config InlineBackend.figure_format = <span class="str">'retina'</span>  <span class="cm"># or 'svg'</span>
+
+<span class="cm"># Interactive widget — requires ipympl</span>
+<span class="op">%</span>matplotlib widget   <span class="cm"># pip install ipympl</span></code></pre>
+
+        <div class="section-title">Multi-page PDF</div>
+        <pre><code><span class="kw">from</span> matplotlib.backends.backend_pdf <span class="kw">import</span> PdfPages
+
+<span class="kw">with</span> <span class="fn">PdfPages</span>(<span class="str">'report.pdf'</span>) <span class="kw">as</span> pdf:
+    <span class="kw">for</span> col <span class="kw">in</span> numeric_cols:
+        fig, ax = plt.<span class="fn">subplots</span>()
+        ax.<span class="fn">hist</span>(df[col], bins=<span class="num">20</span>)
+        ax.<span class="fn">set_title</span>(col)
+        pdf.<span class="fn">savefig</span>(fig, bbox_inches=<span class="str">'tight'</span>)
+        plt.<span class="fn">close</span>(fig)     <span class="cm"># free memory</span></code></pre>
+
+        <div class="callout-blue"><strong>Always close figures:</strong> Call <code>plt.close(fig)</code> after saving if you're generating many figures in a loop. Otherwise Matplotlib keeps them in memory and you'll eventually hit the "More than 20 figures have been opened" warning.</div>
+    </div>
+
+    <!-- ═══════════════════════════════════
+         10 · PRO TIPS / FAQ
+    ════════════════════════════════════ -->
+    <div class="card" id="tips">
+        <h2><span class="icon">⚡</span> Pro Tips &amp; FAQ</h2>
+
+        <div class="section-title">Common Patterns</div>
+        <pre><code><span class="cm"># ── Rotate tick labels without overlapping ───────────────────────</span>
+plt.<span class="fn">xticks</span>(rotation=<span class="num">45</span>, ha=<span class="str">'right'</span>)
+fig.<span class="fn">autofmt_xdate</span>()   <span class="cm"># auto-rotate date labels</span>
+
+<span class="cm"># ── Log scale ────────────────────────────────────────────────────</span>
+ax.<span class="fn">set_yscale</span>(<span class="str">'log'</span>)   <span class="cm"># 'linear' | 'log' | 'symlog' | 'logit'</span>
+
+<span class="cm"># ── Legend outside the plot ──────────────────────────────────────</span>
+ax.<span class="fn">legend</span>(loc=<span class="str">'upper left'</span>,
+          bbox_to_anchor=(<span class="num">1.01</span>, <span class="num">1</span>),   <span class="cm"># x,y in Axes coords</span>
+          borderaxespad=<span class="num">0</span>)
+fig.<span class="fn">tight_layout</span>()   <span class="cm"># re-lay after moving legend</span>
+
+<span class="cm"># ── Shared colourbar for multiple Axes ───────────────────────────</span>
+fig, axes = plt.<span class="fn">subplots</span>(<span class="num">1</span>, <span class="num">3</span>)
+ims = [ax.<span class="fn">imshow</span>(data[i], vmin=<span class="num">0</span>, vmax=<span class="num">1</span>) <span class="kw">for</span> i, ax <span class="kw">in</span> <span class="fn">enumerate</span>(axes)]
+fig.<span class="fn">colorbar</span>(ims[<span class="num">0</span>], ax=axes, shrink=<span class="num">0.7</span>, location=<span class="str">'right'</span>)
+
+<span class="cm"># ── Add a watermark / figure-level text ──────────────────────────</span>
+fig.<span class="fn">text</span>(<span class="num">0.5</span>, <span class="num">0.01</span>, <span class="str">'Source: MyData'</span>, ha=<span class="str">'center'</span>,
+         fontsize=<span class="num">9</span>, color=<span class="str">'grey'</span>, style=<span class="str">'italic'</span>)
+
+<span class="cm"># ── Draw reference lines ─────────────────────────────────────────</span>
+ax.<span class="fn">axhline</span>(y=<span class="num">0</span>,   color=<span class="str">'white'</span>, lw=<span class="num">0.8</span>, linestyle=<span class="str">'--'</span>)
+ax.<span class="fn">axvline</span>(x=<span class="num">2.5</span>, color=<span class="str">'red'</span>,   lw=<span class="num">1</span>,   linestyle=<span class="str">':'</span>)
+ax.<span class="fn">axhspan</span>(<span class="num">0</span>, <span class="num">0.5</span>, alpha=<span class="num">0.1</span>, color=<span class="str">'green'</span>)   <span class="cm"># horizontal band</span>
+
+<span class="cm"># ── Tight, clean axes for presentations ──────────────────────────</span>
+ax.<span class="fn">spines</span>[<span class="str">'top'</span>].<span class="fn">set_visible</span>(<span class="kw">False</span>)
+ax.<span class="fn">spines</span>[<span class="str">'right'</span>].<span class="fn">set_visible</span>(<span class="kw">False</span>)
+ax.<span class="fn">tick_params</span>(length=<span class="num">0</span>)         <span class="cm"># hide tick marks</span></code></pre>
+
+        <div class="section-title">Seaborn-Specific Tips</div>
+        <pre><code><span class="cm"># ── Access underlying Matplotlib Axes from a FacetGrid ───────────</span>
+g = sns.<span class="fn">relplot</span>(...)
+<span class="kw">for</span> ax <span class="kw">in</span> g.<span class="fn">axes</span>.<span class="fn">flat</span>:
+    ax.<span class="fn">set_title</span>(ax.<span class="fn">get_title</span>().<span class="fn">replace</span>(<span class="str">'species = '</span>, <span class="str">''</span>))
+
+<span class="cm"># ── Map custom function onto a FacetGrid ─────────────────────────</span>
+g = sns.<span class="fn">FacetGrid</span>(tips, col=<span class="str">'day'</span>, row=<span class="str">'time'</span>)
+g.<span class="fn">map</span>(plt.scatter, <span class="str">'total_bill'</span>, <span class="str">'tip'</span>, alpha=<span class="num">0.5</span>)
+g.<span class="fn">add_legend</span>()
+
+<span class="cm"># ── Overlay a Seaborn plot on a Matplotlib Axes ──────────────────</span>
+fig, axes = plt.<span class="fn">subplots</span>(<span class="num">1</span>, <span class="num">2</span>, figsize=(<span class="num">10</span>, <span class="num">4</span>))
+sns.<span class="fn">histplot</span>(data=tips, x=<span class="str">'tip'</span>, ax=axes[<span class="num">0</span>])
+sns.<span class="fn">boxplot</span>(data=tips,  x=<span class="str">'day'</span>, y=<span class="str">'tip'</span>, ax=axes[<span class="num">1</span>])
+fig.<span class="fn">suptitle</span>(<span class="str">'Tip Analysis'</span>, fontsize=<span class="num">14</span>)
+fig.<span class="fn">tight_layout</span>()</code></pre>
+
+        <div class="section-title">Performance &amp; Memory</div>
+        <ul>
+            <li>Call <code>plt.close('all')</code> or <code>plt.close(fig)</code> after saving to free memory in loops.</li>
+            <li>Use <code>rasterized=True</code> on scatter / line plots with millions of points when exporting to PDF/SVG — keeps file size small.</li>
+            <li>For large arrays, prefer <code>ax.pcolormesh()</code> over <code>ax.imshow()</code> — it renders cells as patches, not pixels.</li>
+            <li>In animations, <code>blit=True</code> redraws only changed artists; only use when the background is truly static.</li>
+            <li>Seaborn's <code>pairplot</code> and <code>clustermap</code> are slow on wide DataFrames — subsample or drop low-variance columns first.</li>
+        </ul>
+
+        <div class="section-title">Quick Reference — Plot Types Cheat Sheet</div>
+        <table class="param-table">
+            <thead>
+                <tr><th>Goal</th><th>Matplotlib</th><th>Seaborn</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>Line over time</td><td><code>ax.plot()</code></td><td><code>sns.lineplot()</code></td></tr>
+                <tr><td>Scatter</td><td><code>ax.scatter()</code></td><td><code>sns.scatterplot()</code></td></tr>
+                <tr><td>Bar / column</td><td><code>ax.bar()</code></td><td><code>sns.barplot()</code></td></tr>
+                <tr><td>Histogram</td><td><code>ax.hist()</code></td><td><code>sns.histplot()</code></td></tr>
+                <tr><td>KDE density</td><td><code>ax.fill_between()</code> + manual KDE</td><td><code>sns.kdeplot()</code></td></tr>
+                <tr><td>Box plot</td><td><code>ax.boxplot()</code></td><td><code>sns.boxplot()</code></td></tr>
+                <tr><td>Violin</td><td><code>ax.violinplot()</code></td><td><code>sns.violinplot()</code></td></tr>
+                <tr><td>Heatmap</td><td><code>ax.imshow()</code> / <code>pcolormesh()</code></td><td><code>sns.heatmap()</code></td></tr>
+                <tr><td>Regression</td><td>Manual <code>np.polyfit()</code> + <code>plot</code></td><td><code>sns.regplot()</code></td></tr>
+                <tr><td>Pairwise scatter</td><td>Loop <code>subplots()</code></td><td><code>sns.pairplot()</code></td></tr>
+                <tr><td>Joint distribution</td><td>GridSpec + histograms</td><td><code>sns.jointplot()</code></td></tr>
+                <tr><td>3-D surface</td><td><code>ax.plot_surface()</code></td><td>—</td></tr>
+                <tr><td>Contour lines</td><td><code>ax.contour()</code> / <code>contourf()</code></td><td><code>sns.kdeplot()</code> 2-D</td></tr>
+            </tbody>
+        </table>
+
+        <div class="callout-blue"><strong>When to use which:</strong> Reach for <strong>Seaborn</strong> when your data lives in a DataFrame and you want statistical summaries (CI bands, KDE) with <code>hue=</code>/<code>col=</code> grouping. Use raw <strong>Matplotlib</strong> when you need custom layouts, animations, 3-D plots, or pixel-level control over artists.</div>
+    </div>
+
+</div>
+</body>
+</html>
