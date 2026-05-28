@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Python Packaging · venv · pip · conda · pyproject.toml · setuptools</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    :root {
+      --bg:           #0d0f14;
+      --surface:      #161a23;
+      --surface2:     #1e2330;
+      --border:       #272d3d;
+      --accent:       #6c63ff;
+      --accent2:      #00d2c8;
+      --accent3:      #ff7c5c;
+      --accent4:      #ffd166;
+      --text:         #e6eaf5;
+      --text-dim:     #7d8699;
+      --green:        #5dd979;
+      --code-bg:      #11141c;
+      --pill-note:    rgba(108,99,255,0.18);
+      --pill-warn:    rgba(255,124,92,0.18);
+      --pill-tip:     rgba(0,210,200,0.18);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    /* ─── HEADER ──────────────────────────────────────────────────────── */
+    header {
+      background: linear-gradient(135deg, #0f1a30 0%, #101530 50%, #0a1520 100%);
+      padding: 56px 48px 48px;
+      position: relative;
+      overflow: hidden;
+      border-bottom: 1px solid var(--border);
+    }
+
+    header::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 70% 80% at 80% 50%, rgba(0,210,200,0.1), transparent),
+                  radial-gradient(ellipse 50% 60% at 20% 80%, rgba(108,99,255,0.08), transparent);
+    }
+
+    .header-inner { position: relative; max-width: 1100px; margin: 0 auto; }
+
+    header .badge {
+      display: inline-block;
+      background: rgba(0,210,200,0.2);
+      border: 1px solid rgba(0,210,200,0.45);
+      color: #6eeae6;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    header h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 800;
+      letter-spacing: -.02em;
+      background: linear-gradient(135deg, #6eeae6, #00d2c8 40%, #a8a3ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.1;
+      margin-bottom: 14px;
+    }
+
+    header p {
+      color: var(--text-dim);
+      font-size: 1.05rem;
+      max-width: 660px;
+    }
+
+    .pill-row {
+      display: flex; flex-wrap: wrap; gap: 10px;
+      margin-top: 28px;
+    }
+
+    .pill {
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .pill.purple { background: rgba(108,99,255,0.2); color: #a8a3ff; border: 1px solid rgba(108,99,255,0.4); }
+    .pill.teal   { background: rgba(0,210,200,0.2);  color: #6eeae6; border: 1px solid rgba(0,210,200,0.4); }
+    .pill.coral  { background: rgba(255,124,92,0.2); color: #ffb09b; border: 1px solid rgba(255,124,92,0.4); }
+    .pill.yellow { background: rgba(255,209,102,0.2);color: #ffd166; border: 1px solid rgba(255,209,102,0.4); }
+    .pill.green  { background: rgba(93,217,121,0.2); color: #5dd979; border: 1px solid rgba(93,217,121,0.4); }
+
+    /* ─── LAYOUT ──────────────────────────────────────────────────────── */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 40px;
+      align-items: start;
+    }
+
+    /* ─── SIDEBAR / TOC ───────────────────────────────────────────────── */
+    .toc {
+      position: sticky;
+      top: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+    }
+
+    .toc h2 {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--text-dim);
+      margin-bottom: 16px;
+    }
+
+    .toc a {
+      display: block;
+      padding: 6px 10px;
+      border-radius: 8px;
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all .15s;
+      margin-bottom: 2px;
+    }
+
+    .toc a:hover { background: var(--surface2); color: var(--text); }
+    .toc a.active { background: rgba(0,210,200,0.15); color: #6eeae6; }
+
+    /* ─── CONTENT ─────────────────────────────────────────────────────── */
+    .content > section {
+      margin-bottom: 60px;
+      scroll-margin-top: 24px;
+    }
+
+    h2.section-title {
+      font-size: 1.65rem;
+      font-weight: 700;
+      letter-spacing: -.015em;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .section-num {
+      display: flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: var(--accent2);
+      color: #0d0f14;
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    h3 { font-size: 1.1rem; font-weight: 600; margin: 28px 0 12px; color: var(--accent2); }
+
+    p { color: #c9cfe0; margin-bottom: 14px; }
+
+    ul, ol { color: #c9cfe0; padding-left: 22px; margin-bottom: 14px; }
+    li { margin-bottom: 6px; }
+
+    /* ─── CODE BLOCKS ─────────────────────────────────────────────────── */
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      overflow-x: auto;
+      margin: 16px 0;
+      position: relative;
+    }
+
+    pre code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      color: #c9d1e0;
+    }
+
+    /* Syntax colour tokens */
+    .kw   { color: #c792ea; }  /* keyword */
+    .fn   { color: #82aaff; }  /* function */
+    .st   { color: #c3e88d; }  /* string */
+    .cm   { color: #546e7a; font-style: italic; }  /* comment */
+    .nb   { color: #f78c6c; }  /* number */
+    .cl   { color: #ffcb6b; }  /* class */
+    .op   { color: #89ddff; }  /* operator / punctuation */
+    .sh   { color: #5dd979; }  /* shell command / section header */
+    .ky   { color: #ffd166; }  /* TOML/YAML key */
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      background: rgba(0,210,200,0.12);
+      color: #6eeae6;
+      padding: 2px 6px;
+      border-radius: 5px;
+    }
+
+    pre code { background: none; color: inherit; padding: 0; border-radius: 0; }
+
+    /* ─── CODE FILE HEADER ────────────────────────────────────────────── */
+    .code-block {
+      margin: 16px 0;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .code-header {
+      background: var(--surface2);
+      padding: 8px 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .code-header .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .code-header .dot.r { background: #ff5f57; }
+    .code-header .dot.y { background: #febc2e; }
+    .code-header .dot.g { background: #28c840; }
+    .code-header .fname { margin-left: 6px; }
+    .code-block pre { border: none; border-radius: 0; margin: 0; }
+
+    /* ─── CARDS ───────────────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px 28px;
+      margin: 20px 0;
+    }
+
+    .card.note   { border-left: 3px solid var(--accent); }
+    .card.warn   { border-left: 3px solid var(--accent3); }
+    .card.tip    { border-left: 3px solid var(--accent2); }
+
+    .card-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .note .card-label  { color: var(--accent); }
+    .warn .card-label  { color: var(--accent3); }
+    .tip  .card-label  { color: var(--accent2); }
+
+    /* ─── TABLES ──────────────────────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; margin: 20px 0; border-radius: 12px; border: 1px solid var(--border); }
+
+    table { width: 100%; border-collapse: collapse; }
+
+    thead { background: var(--surface2); }
+
+    th {
+      padding: 12px 18px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    td {
+      padding: 13px 18px;
+      font-size: 13.5px;
+      border-top: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    td code { font-size: 12px; }
+
+    tbody tr:hover { background: rgba(255,255,255,0.03); }
+
+    /* ─── FLOW DIAGRAMS ───────────────────────────────────────────────── */
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      flex-wrap: wrap;
+      margin: 24px 0;
+    }
+
+    .flow-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      text-align: center;
+      min-width: 110px;
+    }
+
+    .flow-box.highlight { border-color: var(--accent2); background: rgba(0,210,200,0.1); color: var(--accent2); }
+    .flow-box.green-box { border-color: var(--green);  background: rgba(93,217,121,0.1);  color: var(--green); }
+    .flow-box.purple-box { border-color: var(--accent);background: rgba(108,99,255,0.1); color: #a8a3ff; }
+    .flow-box.yellow-box { border-color: var(--accent4); background: rgba(255,209,102,0.1); color: var(--accent4); }
+
+    .flow-arrow {
+      color: var(--text-dim);
+      font-size: 20px;
+      padding: 0 8px;
+    }
+
+    /* ─── GRID CARDS ──────────────────────────────────────────────────── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 20px 0; }
+
+    .mini-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+    }
+
+    .mini-card .label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 6px;
+    }
+
+    .mini-card .value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      color: var(--text);
+    }
+
+    .mini-card p { font-size: 13px; margin-top: 6px; margin-bottom: 0; color: var(--text-dim); }
+
+    /* ─── COMPARISON GRID ─────────────────────────────────────────────── */
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 20px 0;
+    }
+    .compare-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+    }
+    .compare-box .compare-label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 12px;
+    }
+    .compare-box ul { margin-bottom: 0; }
+
+    /* ─── RESPONSIVE ──────────────────────────────────────────────────── */
+    @media (max-width: 860px) {
+      .container { grid-template-columns: 1fr; }
+      .toc { position: static; }
+      .grid-2, .grid-3, .compare-grid { grid-template-columns: 1fr; }
+      header { padding: 36px 24px 32px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════ HEADER -->
+<header>
+  <div class="header-inner">
+    <span class="badge">Python Tooling</span>
+    <h1>Python Packaging</h1>
+    <p>
+      Everything you need to know about <strong>virtual environments</strong>, <strong>package managers</strong>,
+      and <strong>project configuration</strong> — from first principles to real project structure.
+    </p>
+    <div class="pill-row">
+      <span class="pill teal">venv</span>
+      <span class="pill purple">pip</span>
+      <span class="pill coral">conda</span>
+      <span class="pill yellow">pyproject.toml</span>
+      <span class="pill green">setuptools</span>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════════════ LAYOUT -->
+<div class="container">
+
+  <!-- ── TOC ── -->
+  <nav class="toc">
+    <h2>Contents</h2>
+    <a href="#mental-model">Mental Model</a>
+    <a href="#venv">venv</a>
+    <a href="#pip">pip</a>
+    <a href="#conda">conda</a>
+    <a href="#pip-vs-conda">pip vs conda</a>
+    <a href="#pyproject">pyproject.toml</a>
+    <a href="#setuptools">setuptools</a>
+    <a href="#build-publish">Build &amp; Publish</a>
+    <a href="#project-layout">Project Layout</a>
+    <a href="#cheatsheet">Cheatsheet</a>
+    <hr style="border-color:var(--border);margin:12px 0">
+    <a href="#concept-isolation">Why Isolate?</a>
+    <a href="#concept-deps">Dependency Files</a>
+    <a href="#concept-editable">Editable Installs</a>
+    <a href="#concept-lockfiles">Lock Files</a>
+  </nav>
+
+  <!-- ── CONTENT ── -->
+  <main class="content">
+
+    <!-- ──────────────────────────────────── 1. MENTAL MODEL -->
+    <section id="mental-model">
+      <h2 class="section-title"><span class="section-num">1</span> The Big Picture</h2>
+      <p>
+        Python packaging solves two problems: <strong>isolation</strong> (each project gets its own dependencies)
+        and <strong>distribution</strong> (sharing your code as a reusable library or app).
+      </p>
+
+      <div class="flow">
+        <div class="flow-box">System Python</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box highlight">venv / conda env</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box">Isolated Python</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box purple-box">pip install pkgs</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box green-box">Project runs ✓</div>
+      </div>
+
+      <div class="grid-3">
+        <div class="mini-card">
+          <div class="label" style="color:var(--accent2)">venv / conda</div>
+          <div class="value">Isolation</div>
+          <p>Creates a private Python + site-packages per project</p>
+        </div>
+        <div class="mini-card">
+          <div class="label" style="color:var(--accent)">pip / conda</div>
+          <div class="value">Installation</div>
+          <p>Downloads packages from PyPI or conda-forge</p>
+        </div>
+        <div class="mini-card">
+          <div class="label" style="color:var(--green)">pyproject.toml</div>
+          <div class="value">Configuration</div>
+          <p>Declares your project's metadata and dependencies</p>
+        </div>
+      </div>
+
+      <div class="card tip">
+        <div class="card-label">💡 Analogy</div>
+        <p style="margin:0">
+          Think of each virtual environment as a <strong>clean room</strong>. Your project runs in its own clean room
+          with exactly the packages it needs — no conflicts with other projects.
+          <code>pip</code> / <code>conda</code> are the <em>delivery service</em> that brings packages into the room.
+          <code>pyproject.toml</code> is the <em>manifest</em> listing what's needed.
+        </p>
+      </div>
+    </section>
+
+    <!-- ──────────────────────────────────── 2. VENV -->
+    <section id="venv">
+      <h2 class="section-title"><span class="section-num">2</span> venv</h2>
+      <p>
+        <code>venv</code> is Python's <strong>built-in</strong> module (Python 3.3+) for creating lightweight virtual
+        environments. It copies (or symlinks) the Python binary and creates an isolated <code>site-packages</code> folder.
+      </p>
+
+      <h3>Create &amp; Activate</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+          <span class="fname">terminal (bash / zsh)</span>
+        </div>
+        <pre><code><span class="cm"># Create a new virtual environment in ./venv</span>
+<span class="sh">python3 -m venv venv</span>
+
+<span class="cm"># Activate it (changes your PATH so 'python' and 'pip' point to the venv)</span>
+<span class="sh">source venv/bin/activate</span>          <span class="cm"># macOS / Linux</span>
+<span class="sh">venv\Scripts\activate</span>             <span class="cm"># Windows</span>
+
+<span class="cm"># Verify: the prompt changes and 'which python' shows the venv path</span>
+<span class="sh">which python</span>                       <span class="cm"># → /path/to/project/venv/bin/python</span>
+
+<span class="cm"># Deactivate (returns to system Python)</span>
+<span class="sh">deactivate</span></code></pre>
+      </div>
+
+      <h3>What's Inside a venv?</h3>
+      <pre><code>venv/
+├── bin/                  <span class="cm"># Executables (python, pip, activate script)</span>
+│   ├── python3           <span class="cm"># Symlink to system Python binary</span>
+│   ├── pip
+│   └── activate          <span class="cm"># The script you source to activate</span>
+├── lib/
+│   └── python3.x/
+│       └── site-packages/ <span class="cm"># All installed packages land here</span>
+└── pyvenv.cfg            <span class="cm"># Config: which Python, include-system-site-packages</span></code></pre>
+
+      <div class="card note">
+        <div class="card-label">📌 pyvenv.cfg explained</div>
+        <p style="margin:0">
+          <code>pyvenv.cfg</code> stores the <code>home</code> path (where the base Python lives) and
+          <code>include-system-site-packages = false</code> (by default your venv is isolated from system packages).
+          Pass <code>--system-site-packages</code> to the create command if you want to share them.
+        </p>
+      </div>
+
+      <h3>Common venv Options</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Flag</th><th>Effect</th><th>Example</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>--system-site-packages</code></td><td>Include packages from system Python</td><td><code>python3 -m venv --system-site-packages venv</code></td></tr>
+            <tr><td><code>--without-pip</code></td><td>Skip bundled pip (use if pip not needed)</td><td><code>python3 -m venv --without-pip venv</code></td></tr>
+            <tr><td><code>--prompt NAME</code></td><td>Custom shell prompt label</td><td><code>python3 -m venv --prompt myapp venv</code></td></tr>
+            <tr><td><code>--upgrade-deps</code></td><td>Upgrade pip + setuptools after creating</td><td><code>python3 -m venv --upgrade-deps venv</code></td></tr>
+            <tr><td><code>--copies</code></td><td>Copy binaries instead of symlinking</td><td><code>python3 -m venv --copies venv</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card warn">
+        <div class="card-label">⚠ Never commit venv/</div>
+        <p style="margin:0">
+          Add <code>venv/</code> (or whatever you named it) to <code>.gitignore</code>.
+          Environments are machine-specific — teammates recreate them from <code>requirements.txt</code>
+          or <code>pyproject.toml</code>.
+        </p>
+      </div>
+
+      <h3>Concept: Why isolation matters</h3>
+      <div id="concept-isolation" class="compare-grid">
+        <div class="compare-box">
+          <div class="compare-label" style="color:var(--accent3)">❌ No isolation (global install)</div>
+          <ul>
+            <li>Project A needs <code>requests==2.28</code></li>
+            <li>Project B needs <code>requests==2.31</code></li>
+            <li>Installing one breaks the other</li>
+            <li>Running <code>pip install</code> as root affects the OS</li>
+          </ul>
+        </div>
+        <div class="compare-box">
+          <div class="compare-label" style="color:var(--green)">✅ With venv</div>
+          <ul>
+            <li>Project A → <code>venv_a/</code> → requests 2.28</li>
+            <li>Project B → <code>venv_b/</code> → requests 2.31</li>
+            <li>Zero conflicts — each env is a separate directory</li>
+            <li>Delete env to clean up completely</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ──────────────────────────────────── 3. PIP -->
+    <section id="pip">
+      <h2 class="section-title"><span class="section-num">3</span> pip</h2>
+      <p>
+        <code>pip</code> is Python's standard package installer. It downloads packages from
+        <strong>PyPI</strong> (Python Package Index) and installs them into the currently active environment.
+      </p>
+
+      <h3>Core Commands</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+          <span class="fname">terminal</span>
+        </div>
+        <pre><code><span class="cm"># Install a package</span>
+<span class="sh">pip install requests</span>
+<span class="sh">pip install "requests==2.31.0"</span>      <span class="cm"># exact version</span>
+<span class="sh">pip install "requests>=2.28,<3"</span>     <span class="cm"># version range</span>
+
+<span class="cm"># Install from requirements file</span>
+<span class="sh">pip install -r requirements.txt</span>
+
+<span class="cm"># Install current project (editable)</span>
+<span class="sh">pip install -e .</span>                   <span class="cm"># see Editable Installs section</span>
+
+<span class="cm"># List installed packages</span>
+<span class="sh">pip list</span>
+<span class="sh">pip show requests</span>                  <span class="cm"># detailed info: version, location, deps</span>
+
+<span class="cm"># Upgrade a package</span>
+<span class="sh">pip install --upgrade requests</span>
+
+<span class="cm"># Uninstall</span>
+<span class="sh">pip uninstall requests</span>
+
+<span class="cm"># Freeze: dump currently installed packages to a file</span>
+<span class="sh">pip freeze > requirements.txt</span>
+
+<span class="cm"># Check for outdated packages</span>
+<span class="sh">pip list --outdated</span></code></pre>
+      </div>
+
+      <h3 id="concept-deps">requirements.txt — The Dependency File</h3>
+      <p>
+        A plain text file listing packages (one per line) for <code>pip install -r</code> to install.
+        It's the simplest way to share "what your project needs."
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+          <span class="fname">requirements.txt</span>
+        </div>
+        <pre><code><span class="cm"># Pinned exact versions — reproducible but rigid</span>
+<span class="st">numpy==1.26.4</span>
+<span class="st">pandas==2.2.1</span>
+<span class="st">scikit-learn==1.4.2</span>
+<span class="st">matplotlib==3.8.4</span>
+
+<span class="cm"># Version ranges — flexible but may break on updates</span>
+<span class="st">requests>=2.28,<3</span>
+<span class="st">flask~=3.0</span>      <span class="cm"># ~= means >=3.0 and ==3.*  (compatible release)</span></code></pre>
+      </div>
+
+      <h3>Version Specifiers Explained</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Specifier</th><th>Meaning</th><th>Example</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>==</code></td><td>Exact match</td><td><code>requests==2.31.0</code></td></tr>
+            <tr><td><code>>=</code></td><td>Minimum version</td><td><code>requests>=2.28</code></td></tr>
+            <tr><td><code>&lt;=</code></td><td>Maximum version</td><td><code>requests<=3.0</code></td></tr>
+            <tr><td><code>!=</code></td><td>Exclude a version</td><td><code>requests!=2.30.0</code></td></tr>
+            <tr><td><code>~=</code></td><td>Compatible release</td><td><code>requests~=2.28</code> → <code>>=2.28,==2.*</code></td></tr>
+            <tr><td><code>^</code></td><td>Caret (Poetry/TOML only)</td><td><code>^2.28</code> → <code>>=2.28,<3</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>pip install from different sources</h3>
+      <pre><code><span class="cm"># From PyPI (default)</span>
+<span class="sh">pip install numpy</span>
+
+<span class="cm"># From a Git repo</span>
+<span class="sh">pip install git+https://github.com/user/repo.git</span>
+<span class="sh">pip install git+https://github.com/user/repo.git@v1.2.3</span>   <span class="cm"># specific tag</span>
+
+<span class="cm"># From a local directory (the directory must have pyproject.toml or setup.py)</span>
+<span class="sh">pip install ./my-local-package/</span>
+
+<span class="cm"># From a .whl or .tar.gz file</span>
+<span class="sh">pip install package-1.0.0-py3-none-any.whl</span>
+
+<span class="cm"># Private index / mirror</span>
+<span class="sh">pip install --index-url https://my-private-pypi.com/simple/ mypackage</span></code></pre>
+
+      <h3 id="concept-editable">Editable Installs — <code>pip install -e .</code></h3>
+      <p>
+        An <em>editable install</em> (development install) installs the package without copying files.
+        Instead, Python is told "treat this directory as an installed package."
+        Changes to the source files are immediately reflected — no reinstall needed.
+      </p>
+
+      <div class="compare-grid">
+        <div class="compare-box">
+          <div class="compare-label" style="color:var(--accent3)">Regular install</div>
+          <pre style="background:var(--code-bg);border-radius:8px;padding:12px;margin:0"><code style="font-size:12px"><span class="sh">pip install .</span>
+<span class="cm"># Copies source into site-packages</span>
+<span class="cm"># Changes require reinstall</span></code></pre>
+        </div>
+        <div class="compare-box">
+          <div class="compare-label" style="color:var(--green)">Editable install</div>
+          <pre style="background:var(--code-bg);border-radius:8px;padding:12px;margin:0"><code style="font-size:12px"><span class="sh">pip install -e .</span>
+<span class="cm"># Creates a .pth file pointing here</span>
+<span class="cm"># Edit code → changes live immediately</span></code></pre>
+        </div>
+      </div>
+
+      <div class="card tip">
+        <div class="card-label">💡 When to use -e</div>
+        <p style="margin:0">
+          Always use <code>pip install -e .</code> when <em>actively developing</em> a package.
+          You get <code>import mypackage</code> from anywhere in the venv while editing the source.
+          Switch to a regular install for testing your built distribution.
+        </p>
+      </div>
+    </section>
+
+    <!-- ──────────────────────────────────── 4. CONDA -->
+    <section id="conda">
+      <h2 class="section-title"><span class="section-num">4</span> conda</h2>
+      <p>
+        <code>conda</code> is a cross-language package and environment manager from Anaconda.
+        It can install Python itself (not just Python packages) and handles binary dependencies
+        like BLAS, CUDA, and C libraries — making it indispensable for data science / ML.
+      </p>
+
+      <h3>Core Commands</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+          <span class="fname">terminal</span>
+        </div>
+        <pre><code><span class="cm">## ── Environments ──────────────────────────────────────────────</span>
+
+<span class="cm"># Create env with specific Python version</span>
+<span class="sh">conda create -n myenv python=3.11</span>
+
+<span class="cm"># Create from environment.yml (the conda equivalent of requirements.txt)</span>
+<span class="sh">conda env create -f environment.yml</span>
+
+<span class="cm"># Activate / deactivate</span>
+<span class="sh">conda activate myenv</span>
+<span class="sh">conda deactivate</span>
+
+<span class="cm"># List all environments</span>
+<span class="sh">conda env list</span>              <span class="cm"># also: conda info --envs</span>
+
+<span class="cm"># Remove an environment</span>
+<span class="sh">conda env remove -n myenv</span>
+
+<span class="cm">## ── Packages ──────────────────────────────────────────────────</span>
+
+<span class="cm"># Install packages (from defaults + conda-forge)</span>
+<span class="sh">conda install numpy pandas scikit-learn</span>
+<span class="sh">conda install -c conda-forge lightgbm</span>  <span class="cm"># use conda-forge channel</span>
+
+<span class="cm"># Update a package</span>
+<span class="sh">conda update numpy</span>
+<span class="sh">conda update --all</span>
+
+<span class="cm"># Remove a package</span>
+<span class="sh">conda remove numpy</span>
+
+<span class="cm"># List packages in current env</span>
+<span class="sh">conda list</span>
+
+<span class="cm"># Search for a package</span>
+<span class="sh">conda search scikit-learn</span>
+
+<span class="cm">## ── Export / Recreate ─────────────────────────────────────────</span>
+
+<span class="cm"># Export environment (cross-platform, omit platform-specific builds)</span>
+<span class="sh">conda env export --from-history > environment.yml</span>
+
+<span class="cm"># Full export (locks exact builds — platform specific)</span>
+<span class="sh">conda env export > environment_lock.yml</span></code></pre>
+      </div>
+
+      <h3>environment.yml</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+          <span class="fname">environment.yml</span>
+        </div>
+        <pre><code><span class="ky">name</span><span class="op">:</span> <span class="st">myenv</span>
+
+<span class="ky">channels</span><span class="op">:</span>
+  <span class="op">-</span> <span class="st">conda-forge</span>       <span class="cm"># community-maintained, often more up-to-date</span>
+  <span class="op">-</span> <span class="st">defaults</span>           <span class="cm"># Anaconda's own channel</span>
+
+<span class="ky">dependencies</span><span class="op">:</span>
+  <span class="op">-</span> <span class="st">python=3.11</span>        <span class="cm"># conda installs Python itself!</span>
+  <span class="op">-</span> <span class="st">numpy>=1.26</span>
+  <span class="op">-</span> <span class="st">pandas</span>
+  <span class="op">-</span> <span class="st">scikit-learn</span>
+  <span class="op">-</span> <span class="st">matplotlib</span>
+  <span class="op">-</span> <span class="ky">pip</span><span class="op">:</span>               <span class="cm"># packages only on PyPI, install via pip</span>
+    <span class="op">-</span> <span class="st">some-pypi-only-package==1.2.3</span></code></pre>
+      </div>
+
+      <div class="card tip">
+        <div class="card-label">💡 conda-forge channel</div>
+        <p style="margin:0">
+          Always add <code>conda-forge</code> as your first channel. It's community-maintained,
+          has more packages, and more frequent updates than the <code>defaults</code> channel.
+          Run <code>conda config --add channels conda-forge</code> to make it global.
+        </p>
+      </div>
+
+      <h3>Mini-conda vs Anaconda</h3>
+      <div class="compare-grid">
+        <div class="compare-box">
+          <div class="compare-label" style="color:var(--accent4)">Anaconda (~3 GB)</div>
+          <ul>
+            <li>Full distribution with 250+ pre-installed packages</li>
+            <li>Includes Jupyter, Spyder, Navigator GUI</li>
+            <li>Good for beginners who want "everything"</li>
+          </ul>
+        </div>
+        <div class="compare-box">
+          <div class="compare-label" style="color:var(--accent2)">Miniconda (~60 MB)</div>
+          <ul>
+            <li>Minimal: just conda + Python</li>
+            <li>Install only what you need</li>
+            <li>Recommended for developers</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ──────────────────────────────────── 5. PIP VS CONDA -->
+    <section id="pip-vs-conda">
+      <h2 class="section-title"><span class="section-num">5</span> pip vs conda</h2>
+      <p>Both are package managers but with different scopes and strengths. They are often used together.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Feature</th><th>pip</th><th>conda</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Package source</strong></td>
+              <td>PyPI (~550k packages)</td>
+              <td>conda-forge / defaults (~25k packages)</td>
+            </tr>
+            <tr>
+              <td><strong>Language scope</strong></td>
+              <td>Python only</td>
+              <td>Python, R, C, C++, Fortran, CUDA, …</td>
+            </tr>
+            <tr>
+              <td><strong>Environment mgmt</strong></td>
+              <td>Uses venv (separate tool)</td>
+              <td>Built-in (<code>conda create/activate</code>)</td>
+            </tr>
+            <tr>
+              <td><strong>Binary deps (BLAS, CUDA)</strong></td>
+              <td>Relies on OS or wheels</td>
+              <td>Handles natively — great for GPU/ML</td>
+            </tr>
+            <tr>
+              <td><strong>Dependency solver</strong></td>
+              <td>Fast (pip resolver)</td>
+              <td>Thorough SAT solver — slower but consistent</td>
+            </tr>
+            <tr>
+              <td><strong>Installs Python itself?</strong></td>
+              <td>No — uses existing Python</td>
+              <td>Yes — can create envs with any Python version</td>
+            </tr>
+            <tr>
+              <td><strong>Config file</strong></td>
+              <td><code>requirements.txt</code> / <code>pyproject.toml</code></td>
+              <td><code>environment.yml</code></td>
+            </tr>
+            <tr>
+              <td><strong>Best for</strong></td>
+              <td>Pure-Python projects, web apps, libraries</td>
+              <td>Data science, ML/GPU, cross-language projects</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card note">
+        <div class="card-label">📌 Using pip inside conda</div>
+        <p style="margin:0">
+          You can <strong>mix both</strong>: activate a conda env, then use <code>pip install</code>
+          for packages not on conda channels. The <code>environment.yml</code> file has a <code>pip:</code>
+          sub-section for this. Install conda packages <em>before</em> pip packages to avoid solver conflicts.
+        </p>
+      </div>
+    </section>
+
+    <!-- ──────────────────────────────────── 6. PYPROJECT.TOML -->
+    <section id="pyproject">
+      <h2 class="section-title"><span class="section-num">6</span> pyproject.toml</h2>
+      <p>
+        <code>pyproject.toml</code> is the <strong>modern, unified config file</strong> for Python projects (PEP 517/518/621).
+        It replaces the older <code>setup.py</code> and <code>setup.cfg</code> files.
+        It tells build tools everything about your project.
+      </p>
+
+      <h3>Three sections of pyproject.toml</h3>
+      <div class="grid-3">
+        <div class="mini-card">
+          <div class="label" style="color:var(--accent2)">[build-system]</div>
+          <p>Which tool to use to build your package (setuptools, flit, hatch, poetry)</p>
+        </div>
+        <div class="mini-card">
+          <div class="label" style="color:var(--accent)">[project]</div>
+          <p>Package metadata: name, version, dependencies, classifiers, URLs</p>
+        </div>
+        <div class="mini-card">
+          <div class="label" style="color:var(--green)">[tool.*]</div>
+          <p>Per-tool config (pytest, black, mypy, ruff, etc.) — all in one file</p>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+          <span class="fname">pyproject.toml</span>
+        </div>
+        <pre><code><span class="cm"># ── BUILD SYSTEM ────────────────────────────────────────────────</span>
+<span class="op">[</span><span class="ky">build-system</span><span class="op">]</span>
+<span class="ky">requires</span>      <span class="op">=</span> <span class="op">[</span><span class="st">"setuptools>=68"</span><span class="op">,</span> <span class="st">"wheel"</span><span class="op">]</span>
+<span class="ky">build-backend</span> <span class="op">=</span> <span class="st">"setuptools.build_meta"</span>
+
+<span class="cm"># ── PROJECT METADATA ─────────────────────────────────────────────</span>
+<span class="op">[</span><span class="ky">project</span><span class="op">]</span>
+<span class="ky">name</span>            <span class="op">=</span> <span class="st">"my-awesome-package"</span>
+<span class="ky">version</span>         <span class="op">=</span> <span class="st">"0.1.0"</span>
+<span class="ky">description</span>     <span class="op">=</span> <span class="st">"A short description of my package"</span>
+<span class="ky">readme</span>          <span class="op">=</span> <span class="st">"README.md"</span>
+<span class="ky">license</span>         <span class="op">=</span> <span class="op">{</span><span class="ky">text</span> <span class="op">=</span> <span class="st">"MIT"</span><span class="op">}</span>
+<span class="ky">requires-python</span> <span class="op">=</span> <span class="st">">=3.10"</span>
+<span class="ky">authors</span>         <span class="op">=</span> <span class="op">[{</span><span class="ky">name</span> <span class="op">=</span> <span class="st">"Alice"</span><span class="op">,</span> <span class="ky">email</span> <span class="op">=</span> <span class="st">"alice@example.com"</span><span class="op">}]</span>
+<span class="ky">keywords</span>        <span class="op">=</span> <span class="op">[</span><span class="st">"machine-learning"</span><span class="op">,</span> <span class="st">"data-science"</span><span class="op">]</span>
+
+<span class="cm"># Runtime dependencies (what users need to install your package)</span>
+<span class="ky">dependencies</span> <span class="op">=</span> <span class="op">[</span>
+  <span class="st">"numpy>=1.26"</span><span class="op">,</span>
+  <span class="st">"pandas>=2.0"</span><span class="op">,</span>
+  <span class="st">"requests>=2.28,<3"</span><span class="op">,</span>
+<span class="op">]</span>
+
+<span class="cm"># Optional / extra dependencies</span>
+<span class="op">[</span><span class="ky">project.optional-dependencies</span><span class="op">]</span>
+<span class="ky">dev</span>  <span class="op">=</span> <span class="op">[</span><span class="st">"pytest>=7"</span><span class="op">,</span> <span class="st">"black"</span><span class="op">,</span> <span class="st">"ruff"</span><span class="op">]</span>
+<span class="ky">docs</span> <span class="op">=</span> <span class="op">[</span><span class="st">"sphinx"</span><span class="op">,</span> <span class="st">"myst-parser"</span><span class="op">]</span>
+
+<span class="cm"># Project URLs</span>
+<span class="op">[</span><span class="ky">project.urls</span><span class="op">]</span>
+<span class="ky">Homepage</span>   <span class="op">=</span> <span class="st">"https://github.com/alice/my-package"</span>
+<span class="ky">Issues</span>     <span class="op">=</span> <span class="st">"https://github.com/alice/my-package/issues"</span>
+
+<span class="cm"># Command-line scripts</span>
+<span class="op">[</span><span class="ky">project.scripts</span><span class="op">]</span>
+<span class="ky">my-tool</span> <span class="op">=</span> <span class="st">"mypackage.cli:main"</span>    <span class="cm"># → creates 'my-tool' command in PATH</span>
+
+<span class="cm"># ── TOOL CONFIGS ─────────────────────────────────────────────────</span>
+<span class="op">[</span><span class="ky">tool.pytest.ini_options</span><span class="op">]</span>
+<span class="ky">testpaths</span> <span class="op">=</span> <span class="op">[</span><span class="st">"tests"</span><span class="op">]</span>
+
+<span class="op">[</span><span class="ky">tool.black</span><span class="op">]</span>
+<span class="ky">line-length</span> <span class="op">=</span> <span class="nb">88</span>
+
+<span class="op">[</span><span class="ky">tool.ruff</span><span class="op">]</span>
+<span class="ky">line-length</span> <span class="op">=</span> <span class="nb">88</span>
+<span class="ky">select</span> <span class="op">=</span> <span class="op">[</span><span class="st">"E"</span><span class="op">,</span> <span class="st">"F"</span><span class="op">,</span> <span class="st">"I"</span><span class="op">]</span>      <span class="cm"># pycodestyle, pyflakes, isort</span>
+
+<span class="op">[</span><span class="ky">tool.mypy</span><span class="op">]</span>
+<span class="ky">strict</span> <span class="op">=</span> <span class="nb">true</span></code></pre>
+      </div>
+
+      <h3>Installing optional extras</h3>
+      <pre><code><span class="cm"># Install the package with dev extras</span>
+<span class="sh">pip install -e ".[dev]"</span>
+
+<span class="cm"># Install multiple extras</span>
+<span class="sh">pip install -e ".[dev,docs]"</span></code></pre>
+
+      <div class="card note">
+        <div class="card-label">📌 Dynamic version</div>
+        <p style="margin:0">
+          Instead of hardcoding <code>version = "0.1.0"</code>, you can use
+          <code>dynamic = ["version"]</code> and read it from <code>src/mypackage/__init__.py</code>
+          or a version file. Setuptools handles this via <code>[tool.setuptools.dynamic]</code>.
+        </p>
+      </div>
+    </section>
+
+    <!-- ──────────────────────────────────── 7. SETUPTOOLS -->
+    <section id="setuptools">
+      <h2 class="section-title"><span class="section-num">7</span> setuptools</h2>
+      <p>
+        <code>setuptools</code> is the most common <strong>build backend</strong> — the tool that actually
+        turns your source code into a distributable package (<code>.whl</code> and <code>.tar.gz</code>).
+        It reads <code>pyproject.toml</code> and knows how to find your packages and data files.
+      </p>
+
+      <h3>How setuptools finds your packages</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+          <span class="fname">pyproject.toml — setuptools config</span>
+        </div>
+        <pre><code><span class="op">[</span><span class="ky">tool.setuptools.packages.find</span><span class="op">]</span>
+<span class="ky">where</span>   <span class="op">=</span> <span class="op">[</span><span class="st">"src"</span><span class="op">]</span>    <span class="cm"># look inside the src/ directory</span>
+<span class="ky">include</span> <span class="op">=</span> <span class="op">[</span><span class="st">"mypackage*"</span><span class="op">]</span>  <span class="cm"># optional: only include matching</span>
+<span class="ky">exclude</span> <span class="op">=</span> <span class="op">[</span><span class="st">"tests*"</span><span class="op">]</span>      <span class="cm"># exclude test directories</span>
+
+<span class="cm"># Include non-Python files (data files, templates, etc.)</span>
+<span class="op">[</span><span class="ky">tool.setuptools.package-data</span><span class="op">]</span>
+<span class="ky">mypackage</span> <span class="op">=</span> <span class="op">[</span><span class="st">"*.json"</span><span class="op">,</span> <span class="st">"data/*.csv"</span><span class="op">]</span></code></pre>
+      </div>
+
+      <h3>Src layout vs flat layout</h3>
+      <div class="compare-grid">
+        <div class="compare-box">
+          <div class="compare-label" style="color:var(--accent)">Flat layout</div>
+          <pre style="background:var(--code-bg);border-radius:8px;padding:12px;margin:0"><code style="font-size:12px">my-project/
+├── mypackage/
+│   ├── __init__.py
+│   └── utils.py
+├── tests/
+├── pyproject.toml
+└── README.md</code></pre>
+          <p style="margin-top:10px;font-size:12px">Simple. Risk: accidentally imports the local dir during tests.</p>
+        </div>
+        <div class="compare-box">
+          <div class="compare-label" style="color:var(--green)">Src layout (recommended)</div>
+          <pre style="background:var(--code-bg);border-radius:8px;padding:12px;margin:0"><code style="font-size:12px">my-project/
+├── src/
+│   └── mypackage/
+│       ├── __init__.py
+│       └── utils.py
+├── tests/
+├── pyproject.toml
+└── README.md</code></pre>
+          <p style="margin-top:10px;font-size:12px">Forces proper install. Tests always use the installed version.</p>
+        </div>
+      </div>
+
+      <h3>MANIFEST.in — what goes into the source distribution</h3>
+      <pre><code><span class="cm"># MANIFEST.in — controls what's in the .tar.gz (sdist)</span>
+<span class="sh">include README.md LICENSE pyproject.toml
+recursive-include src/mypackage/data *.json *.csv
+exclude *.pyc</span></code></pre>
+
+      <div class="card tip">
+        <div class="card-label">💡 Modern setuptools auto-discovers</div>
+        <p style="margin:0">
+          With <code>setuptools>=61</code>, you rarely need <code>MANIFEST.in</code> or explicit
+          <code>find_packages()</code>. Just declare <code>[tool.setuptools.packages.find]</code>
+          in <code>pyproject.toml</code> and it auto-discovers everything. Most projects only
+          need a handful of lines.
+        </p>
+      </div>
+    </section>
+
+    <!-- ──────────────────────────────────── 8. BUILD & PUBLISH -->
+    <section id="build-publish">
+      <h2 class="section-title"><span class="section-num">8</span> Build &amp; Publish</h2>
+      <p>
+        Building converts source code into distributable artifacts.
+        There are two artifacts: a <strong>wheel</strong> (<code>.whl</code>) for fast installation,
+        and a <strong>source distribution</strong> (<code>.tar.gz</code> / <code>sdist</code>) for source transparency.
+      </p>
+
+      <div class="flow">
+        <div class="flow-box">Source Code</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box highlight">python -m build</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box">.whl + .tar.gz</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box highlight">twine upload</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box green-box">PyPI ✓</div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+          <span class="fname">terminal — build and publish workflow</span>
+        </div>
+        <pre><code><span class="cm"># 1. Install build tools</span>
+<span class="sh">pip install build twine</span>
+
+<span class="cm"># 2. Build both wheel (.whl) and sdist (.tar.gz)</span>
+<span class="sh">python -m build</span>
+<span class="cm">#   → dist/
+#       my_awesome_package-0.1.0-py3-none-any.whl
+#       my_awesome_package-0.1.0.tar.gz</span>
+
+<span class="cm"># 3. Check the distribution before uploading</span>
+<span class="sh">twine check dist/*</span>
+
+<span class="cm"># 4a. Upload to TestPyPI first (safe testing)</span>
+<span class="sh">twine upload --repository testpypi dist/*</span>
+<span class="cm">#   Install from TestPyPI to verify:</span>
+<span class="sh">pip install --index-url https://test.pypi.org/simple/ my-awesome-package</span>
+
+<span class="cm"># 4b. Upload to production PyPI</span>
+<span class="sh">twine upload dist/*</span>
+<span class="cm">#   Then anyone can install with:</span>
+<span class="sh">pip install my-awesome-package</span></code></pre>
+      </div>
+
+      <h3>Wheel vs Source Distribution</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th></th><th>Wheel (.whl)</th><th>Source Distribution (.tar.gz)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Content</strong></td><td>Pre-built, ready to unzip</td><td>Source code + build instructions</td></tr>
+            <tr><td><strong>Install speed</strong></td><td>Fast (no build step)</td><td>Slower (needs to build)</td></tr>
+            <tr><td><strong>Platform</strong></td><td>Pure Python: any; C ext: platform-specific</td><td>Always platform-agnostic</td></tr>
+            <tr><td><strong>Filename</strong></td><td><code>name-ver-pyX-none-any.whl</code></td><td><code>name-ver.tar.gz</code></td></tr>
+            <tr><td><strong>Purpose</strong></td><td>What users install</td><td>Source of truth / compliance</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="concept-lockfiles">Lock Files — Reproducible Environments</h3>
+      <p>
+        A lock file records the <em>exact resolved versions</em> of every dependency (and sub-dependency).
+        <code>requirements.txt</code> generated by <code>pip freeze</code> is a basic lock file.
+        Modern tools like <strong>pip-tools</strong> or <strong>uv</strong> handle this better.
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+          <span class="fname">pip-tools workflow</span>
+        </div>
+        <pre><code><span class="cm"># pip-tools: compile abstract deps → exact lock file</span>
+<span class="sh">pip install pip-tools</span>
+
+<span class="cm"># requirements.in — abstract (what you want)</span>
+<span class="cm"># numpy>=1.26</span>
+<span class="cm"># pandas</span>
+
+<span class="cm"># Compile to exact versions (reads pyproject.toml or .in file)</span>
+<span class="sh">pip-compile pyproject.toml -o requirements.txt</span>
+<span class="cm"># → requirements.txt with exact pinned versions of all transitive deps</span>
+
+<span class="cm"># Install from lock file</span>
+<span class="sh">pip-sync requirements.txt</span>            <span class="cm"># syncs env to EXACTLY this</span>
+
+<span class="cm"># Update all deps to latest compatible</span>
+<span class="sh">pip-compile --upgrade pyproject.toml</span></code></pre>
+      </div>
+
+      <div class="grid-2">
+        <div class="mini-card">
+          <div class="label" style="color:var(--accent4)">requirements.in / pyproject.toml</div>
+          <p>Abstract: "I need <code>numpy>=1.26</code>" — committed to git, human-maintained</p>
+        </div>
+        <div class="mini-card">
+          <div class="label" style="color:var(--green)">requirements.txt (pinned)</div>
+          <p>Lock: "Use <code>numpy==1.26.4</code> exactly" — also committed, reproducible builds</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ──────────────────────────────────── 9. PROJECT LAYOUT -->
+    <section id="project-layout">
+      <h2 class="section-title"><span class="section-num">9</span> Full Project Layout</h2>
+      <p>
+        A well-structured Python project that can be installed, tested, and published to PyPI.
+      </p>
+
+      <pre><code>my-project/
+├── src/
+│   └── mypackage/
+│       ├── <span class="fn">__init__.py</span>        <span class="cm"># makes it a package; can set __version__</span>
+│       ├── core.py
+│       ├── utils.py
+│       └── data/
+│           └── defaults.json
+├── tests/
+│   ├── conftest.py             <span class="cm"># pytest fixtures</span>
+│   ├── test_core.py
+│   └── test_utils.py
+├── docs/
+│   └── index.rst
+├── <span class="ky">pyproject.toml</span>            <span class="cm"># ← all project config lives here</span>
+├── <span class="ky">requirements.txt</span>          <span class="cm"># lock file (generated by pip freeze / pip-compile)</span>
+├── .gitignore
+├── LICENSE
+└── README.md</code></pre>
+
+      <h3>Minimal __init__.py</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+          <span class="fname">src/mypackage/__init__.py</span>
+        </div>
+        <pre><code><span class="kw">from</span> importlib.metadata <span class="kw">import</span> version, PackageNotFoundError
+
+<span class="kw">try</span><span class="op">:</span>
+    __version__ <span class="op">=</span> <span class="fn">version</span>(<span class="st">"my-awesome-package"</span>)
+<span class="kw">except</span> <span class="cl">PackageNotFoundError</span><span class="op">:</span>
+    __version__ <span class="op">=</span> <span class="st">"0.0.0-dev"</span>   <span class="cm"># not installed, running from source</span>
+
+<span class="cm"># Public API — only these are exported when someone does `from mypackage import *`</span>
+<span class="kw">from</span> .core <span class="kw">import</span> MainClass
+<span class="kw">from</span> .utils <span class="kw">import</span> helper_function
+
+__all__ <span class="op">=</span> [<span class="st">"MainClass"</span>, <span class="st">"helper_function"</span>, <span class="st">"__version__"</span>]</code></pre>
+      </div>
+
+      <h3>Complete pyproject.toml for a real project</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+          <span class="fname">pyproject.toml — production-ready</span>
+        </div>
+        <pre><code><span class="op">[</span><span class="ky">build-system</span><span class="op">]</span>
+<span class="ky">requires</span>      <span class="op">=</span> <span class="op">[</span><span class="st">"setuptools>=68"</span><span class="op">,</span> <span class="st">"wheel"</span><span class="op">]</span>
+<span class="ky">build-backend</span> <span class="op">=</span> <span class="st">"setuptools.build_meta"</span>
+
+<span class="op">[</span><span class="ky">project</span><span class="op">]</span>
+<span class="ky">name</span>            <span class="op">=</span> <span class="st">"mypackage"</span>
+<span class="ky">dynamic</span>         <span class="op">=</span> <span class="op">[</span><span class="st">"version"</span><span class="op">]</span>    <span class="cm"># read from __init__.py</span>
+<span class="ky">description</span>     <span class="op">=</span> <span class="st">"A useful Python package"</span>
+<span class="ky">readme</span>          <span class="op">=</span> <span class="st">"README.md"</span>
+<span class="ky">requires-python</span> <span class="op">=</span> <span class="st">">=3.10"</span>
+<span class="ky">license</span>         <span class="op">=</span> <span class="op">{</span><span class="ky">text</span> <span class="op">=</span> <span class="st">"MIT"</span><span class="op">}</span>
+<span class="ky">authors</span>         <span class="op">=</span> <span class="op">[{</span><span class="ky">name</span> <span class="op">=</span> <span class="st">"Alice"</span><span class="op">,</span> <span class="ky">email</span> <span class="op">=</span> <span class="st">"alice@example.com"</span><span class="op">}]</span>
+<span class="ky">classifiers</span>     <span class="op">=</span> <span class="op">[</span>
+  <span class="st">"Programming Language :: Python :: 3"</span><span class="op">,</span>
+  <span class="st">"License :: OSI Approved :: MIT License"</span><span class="op">,</span>
+  <span class="st">"Operating System :: OS Independent"</span><span class="op">,</span>
+<span class="op">]</span>
+<span class="ky">dependencies</span>    <span class="op">=</span> <span class="op">[</span>
+  <span class="st">"numpy>=1.26"</span><span class="op">,</span>
+  <span class="st">"pandas>=2.0"</span><span class="op">,</span>
+<span class="op">]</span>
+
+<span class="op">[</span><span class="ky">project.optional-dependencies</span><span class="op">]</span>
+<span class="ky">dev</span> <span class="op">=</span> <span class="op">[</span><span class="st">"pytest>=7"</span><span class="op">,</span> <span class="st">"pytest-cov"</span><span class="op">,</span> <span class="st">"ruff"</span><span class="op">,</span> <span class="st">"black"</span><span class="op">,</span> <span class="st">"mypy"</span><span class="op">]</span>
+
+<span class="op">[</span><span class="ky">tool.setuptools.dynamic</span><span class="op">]</span>
+<span class="ky">version</span> <span class="op">=</span> <span class="op">{</span><span class="ky">attr</span> <span class="op">=</span> <span class="st">"mypackage.__version__"</span><span class="op">}</span>
+
+<span class="op">[</span><span class="ky">tool.setuptools.packages.find</span><span class="op">]</span>
+<span class="ky">where</span> <span class="op">=</span> <span class="op">[</span><span class="st">"src"</span><span class="op">]</span>
+
+<span class="op">[</span><span class="ky">tool.pytest.ini_options</span><span class="op">]</span>
+<span class="ky">testpaths</span>  <span class="op">=</span> <span class="op">[</span><span class="st">"tests"</span><span class="op">]</span>
+<span class="ky">addopts</span>    <span class="op">=</span> <span class="st">"--cov=mypackage --cov-report=term-missing"</span>
+
+<span class="op">[</span><span class="ky">tool.ruff</span><span class="op">]</span>
+<span class="ky">line-length</span> <span class="op">=</span> <span class="nb">88</span>
+<span class="ky">select</span>      <span class="op">=</span> <span class="op">[</span><span class="st">"E"</span><span class="op">,</span> <span class="st">"F"</span><span class="op">,</span> <span class="st">"I"</span><span class="op">,</span> <span class="st">"B"</span><span class="op">]</span>
+
+<span class="op">[</span><span class="ky">tool.mypy</span><span class="op">]</span>
+<span class="ky">python_version</span> <span class="op">=</span> <span class="st">"3.10"</span>
+<span class="ky">strict</span>         <span class="op">=</span> <span class="nb">true</span></code></pre>
+      </div>
+    </section>
+
+    <!-- ──────────────────────────────────── 10. CHEATSHEET -->
+    <section id="cheatsheet">
+      <h2 class="section-title"><span class="section-num">10</span> Cheatsheet</h2>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Task</th><th>venv + pip</th><th>conda</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Create env</td>
+              <td><code>python3 -m venv venv</code></td>
+              <td><code>conda create -n myenv python=3.11</code></td>
+            </tr>
+            <tr>
+              <td>Activate</td>
+              <td><code>source venv/bin/activate</code></td>
+              <td><code>conda activate myenv</code></td>
+            </tr>
+            <tr>
+              <td>Deactivate</td>
+              <td><code>deactivate</code></td>
+              <td><code>conda deactivate</code></td>
+            </tr>
+            <tr>
+              <td>Install package</td>
+              <td><code>pip install numpy</code></td>
+              <td><code>conda install numpy</code></td>
+            </tr>
+            <tr>
+              <td>Install from file</td>
+              <td><code>pip install -r requirements.txt</code></td>
+              <td><code>conda env create -f environment.yml</code></td>
+            </tr>
+            <tr>
+              <td>Export env</td>
+              <td><code>pip freeze > requirements.txt</code></td>
+              <td><code>conda env export --from-history > env.yml</code></td>
+            </tr>
+            <tr>
+              <td>Dev install</td>
+              <td><code>pip install -e .</code></td>
+              <td><code>pip install -e .</code> (inside conda env)</td>
+            </tr>
+            <tr>
+              <td>List packages</td>
+              <td><code>pip list</code></td>
+              <td><code>conda list</code></td>
+            </tr>
+            <tr>
+              <td>Build package</td>
+              <td><code>python -m build</code></td>
+              <td><code>python -m build</code></td>
+            </tr>
+            <tr>
+              <td>Publish to PyPI</td>
+              <td><code>twine upload dist/*</code></td>
+              <td><code>twine upload dist/*</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Quick-start: New project from scratch</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+          <span class="fname">terminal — full new project setup</span>
+        </div>
+        <pre><code><span class="cm"># 1. Create project directory</span>
+<span class="sh">mkdir my-project && cd my-project</span>
+
+<span class="cm"># 2. Create virtual environment and activate</span>
+<span class="sh">python3 -m venv venv && source venv/bin/activate</span>
+
+<span class="cm"># 3. Upgrade pip</span>
+<span class="sh">pip install --upgrade pip</span>
+
+<span class="cm"># 4. Create src layout</span>
+<span class="sh">mkdir -p src/mypackage tests</span>
+<span class="sh">touch src/mypackage/__init__.py src/mypackage/core.py</span>
+<span class="sh">touch tests/test_core.py pyproject.toml README.md</span>
+
+<span class="cm"># 5. Write pyproject.toml (see section 6/9 above)</span>
+
+<span class="cm"># 6. Install your package in editable mode + dev extras</span>
+<span class="sh">pip install -e ".[dev]"</span>
+
+<span class="cm"># 7. Develop, test, iterate</span>
+<span class="sh">pytest</span>
+
+<span class="cm"># 8. When ready to publish</span>
+<span class="sh">pip install build twine</span>
+<span class="sh">python -m build</span>
+<span class="sh">twine upload dist/*</span></code></pre>
+      </div>
+
+      <div class="card tip">
+        <div class="card-label">💡 Modern alternatives worth knowing</div>
+        <p style="margin:0">
+          The ecosystem has faster modern tools: <strong>uv</strong> (Rust-based, extremely fast pip + venv replacement),
+          <strong>hatch</strong> (build backend + env manager), <strong>poetry</strong> (all-in-one with lock file),
+          and <strong>pdm</strong>. They all still use <code>pyproject.toml</code> as the config format.
+          Learning pip + venv + setuptools first gives you the foundation to understand them all.
+        </p>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  // ── Active TOC link on scroll ──────────────────────────────────────────
+  const sections = document.querySelectorAll('section[id]');
+  const tocLinks = document.querySelectorAll('.toc a');
+
+  const observer = new IntersectionObserver(
+    entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          tocLinks.forEach(l => l.classList.remove('active'));
+          const active = document.querySelector(`.toc a[href="#${entry.target.id}"]`);
+          if (active) active.classList.add('active');
+        }
+      });
+    },
+    { rootMargin: '-20% 0px -75% 0px' }
+  );
+
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>

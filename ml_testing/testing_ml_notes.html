@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Testing ML Code · pytest · fixtures · parametrize · mock · coverage</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    :root {
+      --bg:           #0d0f14;
+      --surface:      #161a23;
+      --surface2:     #1e2330;
+      --border:       #272d3d;
+      --accent:       #6c63ff;
+      --accent2:      #00d2c8;
+      --accent3:      #ff7c5c;
+      --accent4:      #ffd166;
+      --text:         #e6eaf5;
+      --text-dim:     #7d8699;
+      --green:        #5dd979;
+      --code-bg:      #11141c;
+      --pill-note:    rgba(108,99,255,0.18);
+      --pill-warn:    rgba(255,124,92,0.18);
+      --pill-tip:     rgba(0,210,200,0.18);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    /* ─── HEADER ──────────────────────────────────────────────────────── */
+    header {
+      background: linear-gradient(135deg, #0f1a30 0%, #101530 50%, #0a1520 100%);
+      padding: 56px 48px 48px;
+      position: relative;
+      overflow: hidden;
+      border-bottom: 1px solid var(--border);
+    }
+
+    header::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 70% 80% at 80% 50%, rgba(0,210,200,0.1), transparent),
+                  radial-gradient(ellipse 50% 60% at 20% 80%, rgba(108,99,255,0.08), transparent);
+    }
+
+    .header-inner { position: relative; max-width: 1100px; margin: 0 auto; }
+
+    header .badge {
+      display: inline-block;
+      background: rgba(0,210,200,0.2);
+      border: 1px solid rgba(0,210,200,0.45);
+      color: #6eeae6;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    header h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 800;
+      letter-spacing: -.02em;
+      background: linear-gradient(135deg, #6eeae6, #00d2c8 40%, #a8a3ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.1;
+      margin-bottom: 14px;
+    }
+
+    header p {
+      color: var(--text-dim);
+      font-size: 1.05rem;
+      max-width: 660px;
+    }
+
+    .pill-row {
+      display: flex; flex-wrap: wrap; gap: 10px;
+      margin-top: 28px;
+    }
+
+    .pill {
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .pill.purple { background: rgba(108,99,255,0.2); color: #a8a3ff; border: 1px solid rgba(108,99,255,0.4); }
+    .pill.teal   { background: rgba(0,210,200,0.2);  color: #6eeae6; border: 1px solid rgba(0,210,200,0.4); }
+    .pill.coral  { background: rgba(255,124,92,0.2); color: #ffb09b; border: 1px solid rgba(255,124,92,0.4); }
+    .pill.yellow { background: rgba(255,209,102,0.2);color: #ffd166; border: 1px solid rgba(255,209,102,0.4); }
+    .pill.green  { background: rgba(93,217,121,0.2); color: #5dd979; border: 1px solid rgba(93,217,121,0.4); }
+
+    /* ─── LAYOUT ──────────────────────────────────────────────────────── */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 40px;
+      align-items: start;
+    }
+
+    /* ─── SIDEBAR / TOC ───────────────────────────────────────────────── */
+    .toc {
+      position: sticky;
+      top: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+    }
+
+    .toc h2 {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--text-dim);
+      margin-bottom: 16px;
+    }
+
+    .toc a {
+      display: block;
+      padding: 6px 10px;
+      border-radius: 8px;
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all .15s;
+      margin-bottom: 2px;
+    }
+
+    .toc a:hover { background: var(--surface2); color: var(--text); }
+    .toc a.active { background: rgba(0,210,200,0.15); color: #6eeae6; }
+
+    /* ─── CONTENT ─────────────────────────────────────────────────────── */
+    .content > section {
+      margin-bottom: 60px;
+      scroll-margin-top: 24px;
+    }
+
+    h2.section-title {
+      font-size: 1.65rem;
+      font-weight: 700;
+      letter-spacing: -.015em;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .section-num {
+      display: flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: var(--accent2);
+      color: #0d0f14;
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    h3 { font-size: 1.1rem; font-weight: 600; margin: 28px 0 12px; color: var(--accent2); }
+
+    p { color: #c9cfe0; margin-bottom: 14px; }
+
+    ul, ol { color: #c9cfe0; padding-left: 22px; margin-bottom: 14px; }
+    li { margin-bottom: 6px; }
+
+    /* ─── CODE BLOCKS ─────────────────────────────────────────────────── */
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      overflow-x: auto;
+      margin: 16px 0;
+      position: relative;
+    }
+
+    pre code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      color: #c9d1e0;
+    }
+
+    /* Syntax colour tokens */
+    .kw   { color: #c792ea; }  /* keyword */
+    .fn   { color: #82aaff; }  /* function */
+    .st   { color: #c3e88d; }  /* string */
+    .cm   { color: #546e7a; font-style: italic; }  /* comment */
+    .nb   { color: #f78c6c; }  /* number */
+    .cl   { color: #ffcb6b; }  /* class */
+    .op   { color: #89ddff; }  /* operator / punctuation */
+    .sh   { color: #5dd979; }  /* shell command / section header */
+    .ky   { color: #ffd166; }  /* TOML/YAML key */
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      background: rgba(0,210,200,0.12);
+      color: #6eeae6;
+      padding: 2px 6px;
+      border-radius: 5px;
+    }
+
+    pre code { background: none; color: inherit; padding: 0; border-radius: 0; }
+
+    /* ─── CODE FILE HEADER ────────────────────────────────────────────── */
+    .code-block {
+      margin: 16px 0;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .code-header {
+      background: var(--surface2);
+      padding: 8px 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .code-header .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .code-header .dot.r { background: #ff5f57; }
+    .code-header .dot.y { background: #febc2e; }
+    .code-header .dot.g { background: #28c840; }
+    .code-header .fname { margin-left: 6px; }
+    .code-block pre { border: none; border-radius: 0; margin: 0; }
+
+    /* ─── CARDS ───────────────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px 28px;
+      margin: 20px 0;
+    }
+
+    .card.note   { border-left: 3px solid var(--accent); }
+    .card.warn   { border-left: 3px solid var(--accent3); }
+    .card.tip    { border-left: 3px solid var(--accent2); }
+
+    .card-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .note .card-label  { color: var(--accent); }
+    .warn .card-label  { color: var(--accent3); }
+    .tip  .card-label  { color: var(--accent2); }
+
+    /* ─── TABLES ──────────────────────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; margin: 20px 0; border-radius: 12px; border: 1px solid var(--border); }
+
+    table { width: 100%; border-collapse: collapse; }
+
+    thead { background: var(--surface2); }
+
+    th {
+      padding: 12px 18px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    td {
+      padding: 13px 18px;
+      font-size: 13.5px;
+      border-top: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    td code { font-size: 12px; }
+
+    tbody tr:hover { background: rgba(255,255,255,0.03); }
+
+    /* ─── FLOW DIAGRAMS ───────────────────────────────────────────────── */
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      flex-wrap: wrap;
+      margin: 24px 0;
+    }
+
+    .flow-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      text-align: center;
+      min-width: 110px;
+    }
+
+    .flow-box.highlight { border-color: var(--accent2); background: rgba(0,210,200,0.1); color: var(--accent2); }
+    .flow-box.green-box { border-color: var(--green);  background: rgba(93,217,121,0.1);  color: var(--green); }
+    .flow-box.purple-box { border-color: var(--accent);background: rgba(108,99,255,0.1); color: #a8a3ff; }
+    .flow-box.yellow-box { border-color: var(--accent4); background: rgba(255,209,102,0.1); color: var(--accent4); }
+
+    .flow-arrow {
+      color: var(--text-dim);
+      font-size: 20px;
+      padding: 0 8px;
+    }
+
+    /* ─── GRID CARDS ──────────────────────────────────────────────────── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 20px 0; }
+
+    .mini-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+    }
+
+    .mini-card .label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 6px;
+    }
+
+    .mini-card .value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      color: var(--text);
+    }
+
+    .mini-card p { font-size: 13px; margin-top: 6px; margin-bottom: 0; color: var(--text-dim); }
+
+    /* ─── COMPARISON GRID ─────────────────────────────────────────────── */
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 20px 0;
+    }
+    .compare-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+    }
+    .compare-box .compare-label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 12px;
+    }
+    .compare-box ul { margin-bottom: 0; }
+
+    /* ─── RESPONSIVE ──────────────────────────────────────────────────── */
+    @media (max-width: 860px) {
+      .container { grid-template-columns: 1fr; }
+      .toc { position: static; }
+      .grid-2, .grid-3, .compare-grid { grid-template-columns: 1fr; }
+      header { padding: 36px 24px 32px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════ HEADER -->
+<header>
+  <div class="header-inner">
+    <span class="badge">ML Engineering</span>
+    <h1>Testing ML Code</h1>
+    <p>
+      A comprehensive guide to robust Machine Learning pipelines using <strong>pytest</strong>. Master <strong>fixtures</strong>, <strong>parametrization</strong>, <strong>mocking</strong>, and <strong>coverage</strong> to ensure your data and models behave exactly as expected.
+    </p>
+    <div class="pill-row">
+      <span class="pill teal">pytest</span>
+      <span class="pill purple">fixtures</span>
+      <span class="pill coral">parametrize</span>
+      <span class="pill yellow">mock</span>
+      <span class="pill green">coverage</span>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════════════ LAYOUT -->
+<div class="container">
+
+  <!-- ── TOC ── -->
+  <nav class="toc">
+    <h2>Contents</h2>
+    <a href="#why-test-ml">Why Test ML Code?</a>
+    <a href="#pytest-basics">pytest Basics</a>
+    <a href="#fixtures">Fixtures (Setup/Teardown)</a>
+    <a href="#parametrize">Parametrize (Data-driven)</a>
+    <a href="#mocking">Mocking (External APIs/DBs)</a>
+    <a href="#coverage">Test Coverage</a>
+    <a href="#ml-testing-patterns">ML Testing Patterns</a>
+  </nav>
+
+  <!-- ── CONTENT ── -->
+  <main class="content">
+
+    <!-- ──────────────────────────────────── 1. WHY TEST ML -->
+    <section id="why-test-ml">
+      <h2 class="section-title"><span class="section-num">1</span> Why Test ML Code?</h2>
+      <p>
+        Testing ML systems is fundamentally different from traditional software. Traditional code is deterministic, while ML code often relies on stochastic processes, large datasets, and complex mathematical transformations.
+      </p>
+
+      <div class="compare-grid">
+        <div class="compare-box">
+          <div class="compare-label" style="color:var(--accent3)">Traditional Software Testing</div>
+          <ul>
+            <li>Fixed inputs produce fixed outputs.</li>
+            <li>Unit tests cover discrete logic blocks.</li>
+            <li>Logic bugs are usually explicit crashes.</li>
+          </ul>
+        </div>
+        <div class="compare-box">
+          <div class="compare-label" style="color:var(--green)">ML Software Testing</div>
+          <ul>
+            <li>Outputs depend on data distribution and model weights.</li>
+            <li>Bugs can be silent (e.g., model trains but metrics are degraded).</li>
+            <li>Need to test data shapes, pipeline steps, and determinism.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card tip">
+        <div class="card-label">💡 The ML Testing Pyramid</div>
+        <p style="margin:0">
+          In ML, you need <strong>Unit Tests</strong> (for data transformations and model architecture shapes), <strong>Integration Tests</strong> (pipeline end-to-end with dummy data), and <strong>Validation Tests</strong> (checking model metrics against a baseline).
+        </p>
+      </div>
+    </section>
+
+    <!-- ──────────────────────────────────── 2. PYTEST BASICS -->
+    <section id="pytest-basics">
+      <h2 class="section-title"><span class="section-num">2</span> pytest Basics</h2>
+      <p>
+        <code>pytest</code> is the standard testing framework in Python. It automatically discovers tests and provides rich output for failures.
+      </p>
+
+      <h3>Writing a Basic Test</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+          <span class="fname">test_preprocessing.py</span>
+        </div>
+        <pre><code><span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">from</span> my_ml_lib.preprocessing <span class="kw">import</span> normalize_data
+
+<span class="kw">def</span> <span class="fn">test_normalize_data_scales_to_zero_one</span>():
+    <span class="cm"># Arrange</span>
+    raw_data = np.array([<span class="nb">0.0</span>, <span class="nb">50.0</span>, <span class="nb">100.0</span>])
+    
+    <span class="cm"># Act</span>
+    scaled_data = normalize_data(raw_data)
+    
+    <span class="cm"># Assert</span>
+    <span class="kw">assert</span> np.min(scaled_data) == <span class="nb">0.0</span>
+    <span class="kw">assert</span> np.max(scaled_data) == <span class="nb">1.0</span>
+    <span class="kw">assert</span> scaled_data[<span class="nb">1</span>] == <span class="nb">0.5</span></code></pre>
+      </div>
+
+      <h3>Running Tests</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+          <span class="fname">terminal</span>
+        </div>
+        <pre><code><span class="cm"># Run all tests in the current directory and subdirectories</span>
+<span class="sh">pytest</span>
+
+<span class="cm"># Run a specific test file</span>
+<span class="sh">pytest tests/test_preprocessing.py</span>
+
+<span class="cm"># Run tests matching a string (e.g., run only 'test_normalize')</span>
+<span class="sh">pytest -k "normalize"</span>
+
+<span class="cm"># Run with verbose output and print statements (useful for debugging ML arrays)</span>
+<span class="sh">pytest -v -s</span></code></pre>
+      </div>
+    </section>
+
+    <!-- ──────────────────────────────────── 3. FIXTURES -->
+    <section id="fixtures">
+      <h2 class="section-title"><span class="section-num">3</span> Fixtures</h2>
+      <p>
+        Fixtures are reusable pieces of setup code. In ML, you often need mock DataFrames, pre-instantiated models, or temporary directories for saving artifacts. Fixtures keep your tests DRY (Don't Repeat Yourself).
+      </p>
+
+      <h3>Creating and Using a Fixture</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+          <span class="fname">test_pipeline.py</span>
+        </div>
+        <pre><code><span class="kw">import</span> pytest
+<span class="kw">import</span> pandas <span class="kw">as</span> pd
+
+<span class="cm"># Define a fixture</span>
+<span class="kw">@pytest.fixture</span>
+<span class="kw">def</span> <span class="fn">sample_dataframe</span>():
+    <span class="cm">"""Returns a small DataFrame for testing preprocessing steps."""</span>
+    <span class="kw">return</span> pd.DataFrame({
+        <span class="st">'age'</span>: [<span class="nb">25</span>, <span class="nb">30</span>, np.nan, <span class="nb">40</span>],
+        <span class="st">'income'</span>: [<span class="nb">50000</span>, <span class="nb">60000</span>, <span class="nb">55000</span>, <span class="nb">120000</span>],
+        <span class="st">'target'</span>: [<span class="nb">0</span>, <span class="nb">1</span>, <span class="nb">0</span>, <span class="nb">1</span>]
+    })
+
+<span class="cm"># Use the fixture by passing its name as an argument</span>
+<span class="kw">def</span> <span class="fn">test_imputer_removes_nans</span>(sample_dataframe):
+    <span class="kw">from</span> my_ml_lib <span class="kw">import</span> fill_missing_values
+    
+    cleaned_df = fill_missing_values(sample_dataframe)
+    
+    <span class="kw">assert</span> cleaned_df.isna().sum().sum() == <span class="nb">0</span>
+    <span class="kw">assert</span> cleaned_df[<span class="st">'age'</span>].iloc[<span class="nb">2</span>] == <span class="nb">31.66</span> <span class="cm"># Assuming mean imputation</span></code></pre>
+      </div>
+
+      <div class="card note">
+        <div class="card-label">📌 Fixture Scopes</div>
+        <p style="margin:0">
+          By default, fixtures are recreated for every test function (<code>scope="function"</code>). For expensive ML operations (like loading a heavy pre-trained model for inference tests), use <code>@pytest.fixture(scope="session")</code> to load it only once per test run.
+        </p>
+      </div>
+    </section>
+
+    <!-- ──────────────────────────────────── 4. PARAMETRIZE -->
+    <section id="parametrize">
+      <h2 class="section-title"><span class="section-num">4</span> Parametrize</h2>
+      <p>
+        <code>@pytest.mark.parametrize</code> allows you to run the same test function with multiple sets of arguments. This is incredibly useful for testing edge cases in data inputs or ensuring a function works across different hyperparameters.
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+          <span class="fname">test_activations.py</span>
+        </div>
+        <pre><code><span class="kw">import</span> pytest
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">from</span> my_ml_lib.activations <span class="kw">import</span> relu
+
+<span class="kw">@pytest.mark.parametrize</span>(<span class="st">"input_val, expected_val"</span>, [
+    (<span class="nb">5.0</span>, <span class="nb">5.0</span>),     <span class="cm"># Positive number remains unchanged</span>
+    (-<span class="nb">2.0</span>, <span class="nb">0.0</span>),    <span class="cm"># Negative number becomes zero</span>
+    (<span class="nb">0.0</span>, <span class="nb">0.0</span>),     <span class="cm"># Zero remains zero</span>
+    (np.array([-<span class="nb">1</span>, <span class="nb">1</span>]), np.array([<span class="nb">0</span>, <span class="nb">1</span>])) <span class="cm"># Works on arrays</span>
+])
+<span class="kw">def</span> <span class="fn">test_relu_activation</span>(input_val, expected_val):
+    result = relu(input_val)
+    
+    <span class="cm"># Use np.testing for array comparisons to handle floats and structures</span>
+    np.testing.assert_array_equal(result, expected_val)</code></pre>
+      </div>
+    </section>
+
+    <!-- ──────────────────────────────────── 5. MOCKING -->
+    <section id="mocking">
+      <h2 class="section-title"><span class="section-num">5</span> Mocking</h2>
+      <p>
+        ML pipelines often fetch data from databases (SQL, S3) or external APIs. You don't want your unit tests to make real network calls because they will be slow, flaky, and require credentials. Use mocking to simulate these interactions. We typically use the <code>pytest-mock</code> plugin (which wraps <code>unittest.mock</code>).
+      </p>
+
+      <h3>Mocking an S3 Data Fetch</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+          <span class="fname">test_data_loader.py</span>
+        </div>
+        <pre><code><span class="kw">import</span> pandas <span class="kw">as</span> pd
+<span class="kw">from</span> my_ml_lib.data_loader <span class="kw">import</span> fetch_data_from_s3
+
+<span class="kw">def</span> <span class="fn">test_fetch_data_formats_correctly</span>(mocker):
+    <span class="cm"># 1. Create a fake dataframe that the mock will return</span>
+    fake_df = pd.DataFrame({<span class="st">'id'</span>: [<span class="nb">1</span>, <span class="nb">2</span>], <span class="st">'val'</span>: [<span class="st">'A'</span>, <span class="st">'B'</span>]})
+    
+    <span class="cm"># 2. Patch the actual network call function</span>
+    <span class="cm"># Replace 'my_ml_lib.data_loader.boto3_download' with a mock that returns our fake df</span>
+    mock_download = mocker.patch(
+        <span class="st">'my_ml_lib.data_loader.boto3_download'</span>, 
+        return_value=fake_df
+    )
+    
+    <span class="cm"># 3. Call the function under test</span>
+    result = fetch_data_from_s3(<span class="st">"s3://my-bucket/data.csv"</span>)
+    
+    <span class="cm"># 4. Assert the result and that the mock was called correctly</span>
+    <span class="kw">assert</span> <span class="nb">len</span>(result) == <span class="nb">2</span>
+    mock_download.assert_called_once_with(<span class="st">"s3://my-bucket/data.csv"</span>)</code></pre>
+      </div>
+
+      <div class="card warn">
+        <div class="card-label">⚠ Mocking where it's used</div>
+        <p style="margin:0">
+          When patching, you must patch the object <em>where it is imported into and used</em>, not where it is defined. If <code>data_loader.py</code> does <code>from utils import boto3_download</code>, you must patch <code>my_ml_lib.data_loader.boto3_download</code>.
+        </p>
+      </div>
+    </section>
+
+    <!-- ──────────────────────────────────── 6. COVERAGE -->
+    <section id="coverage">
+      <h2 class="section-title"><span class="section-num">6</span> Coverage</h2>
+      <p>
+        Test coverage measures the percentage of your code executed during tests. Use <code>pytest-cov</code> to identify untested paths in your ML data processing logic.
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+          <span class="fname">terminal</span>
+        </div>
+        <pre><code><span class="cm"># Install pytest-cov</span>
+<span class="sh">pip install pytest-cov</span>
+
+<span class="cm"># Run tests and generate a terminal report for the 'my_ml_lib' package</span>
+<span class="sh">pytest --cov=my_ml_lib</span>
+
+<span class="cm"># Generate a detailed HTML report (creates a htmlcov/ index.html)</span>
+<span class="sh">pytest --cov=my_ml_lib --cov-report=html</span></code></pre>
+      </div>
+
+      <div class="card tip">
+        <div class="card-label">💡 Coverage in ML</div>
+        <p style="margin:0">
+          Aim for high coverage on data preprocessing, feature engineering, and inference API wrappers. Don't worry about getting 100% coverage on complex training loops or third-party library calls. Logic errors in data pipelines are the most common source of ML bugs.
+        </p>
+      </div>
+    </section>
+
+    <!-- ──────────────────────────────────── 7. ML PATTERNS -->
+    <section id="ml-testing-patterns">
+      <h2 class="section-title"><span class="section-num">7</span> Key ML Testing Patterns</h2>
+
+      <div class="grid-2">
+        <div class="mini-card">
+          <div class="label" style="color:var(--accent2)">1. Determinism (Seeds)</div>
+          <p>Always set random seeds for numpy, torch, or scikit-learn inside tests or fixtures to ensure tests don't fail randomly due to weight initialization or data splitting.</p>
+        </div>
+        <div class="mini-card">
+          <div class="label" style="color:var(--accent)">2. Overfitting a small batch</div>
+          <p>A classic model test: Create a dataset of 5-10 examples. Train your model on it for many epochs. Assert that the loss goes near zero. If it can't overfit a tiny batch, the architecture or training loop is broken.</p>
+        </div>
+        <div class="mini-card">
+          <div class="label" style="color:var(--yellow)">3. Shape and Type Checks</div>
+          <p>ML bugs are often silent broadcasting errors. Explicitly test that your dataset features have the correct <code>.shape</code> and <code>.dtype</code> before and after transformations.</p>
+        </div>
+        <div class="mini-card">
+          <div class="label" style="color:var(--green)">4. np.testing</div>
+          <p>Never use <code>==</code> for floating-point arrays. Always use <code>np.testing.assert_allclose()</code> or <code>torch.testing.assert_close()</code> to account for minor precision differences.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+</body>
+</html>
